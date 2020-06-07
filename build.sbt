@@ -32,7 +32,10 @@ lazy val `ingest-sbt-plugins` = project
       "io.circe" %% "circe-yaml" % "0.13.1",
       "org.scalatest" %% "scalatest" % "3.1.1" % Test
     ),
-    buildInfoKeys += BuildInfoKey("scioUtilsName", `ingest-scio-utils` / name)
+    buildInfoKeys ++= Seq(
+      BuildInfoKey("scioUtilsName", `ingest-scio-utils` / name),
+      BuildInfoKey("scioTestUtilsName", `ingest-scio-test-utils` / name)
+    )
   )
 
 // NOTE: These constants aren't used above because the two lists of dependencies
