@@ -1,7 +1,7 @@
 lazy val `ingest-utilities` = project
   .in(file("."))
   .settings(publish / skip := true)
-  .aggregate(`core-sbt-plugins`, `ingest-sbt-plugins`, `ingest-scio-utils`)
+  .aggregate(`core-sbt-plugins`, `ingest-sbt-plugins`, `ingest-scio-utils`, `ingest-scio-test-utils`)
 
 /** 'Core' plugins for use across all Monster sbt projects. */
 lazy val `core-sbt-plugins` = project
@@ -33,8 +33,8 @@ lazy val `ingest-sbt-plugins` = project
       "org.scalatest" %% "scalatest" % "3.1.1" % Test
     ),
     buildInfoKeys ++= Seq(
-      BuildInfoKey("scioUtilsName", `ingest-scio-utils` / name),
-      BuildInfoKey("scioTestUtilsName", `ingest-scio-test-utils` / name)
+      BuildInfoKey("scioUtilsName", (`ingest-scio-utils` / name).value),
+      BuildInfoKey("scioTestUtilsName", (`ingest-scio-test-utils` / name).value)
     )
   )
 
