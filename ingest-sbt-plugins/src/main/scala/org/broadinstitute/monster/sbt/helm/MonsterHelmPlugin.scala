@@ -125,16 +125,20 @@ object MonsterHelmPlugin extends AutoPlugin {
         }
       }
 
-      val currentBranch =
-        Process(Seq("git", "rev-parse", "--abbrev-ref", "HEAD"), gitBase).!!.trim()
+      def gitRead(cmd: String, args: String*): String = {
+        val fullCommand = Seq("git", cmd) ++ args
+        Process(fullCommand, gitBase).!!.trim()
+      }
+
+      val currentBranch = gitRead("rev-parse", "--abbrev-ref", "HEAD")
 
       log.info(s"Pushing updated index to $indexSite...")
       val attemptPushingIndex = Try {
         git("checkout", "gh-pages")
         IO.copyFile(indexTarget, gitBase / "index.yaml")
 
-        val diffCode = Process(Seq("git", "diff", "--quiet"), gitBase).!
-        if (diffCode == 0) {
+        val diff = gitRead("status", "--porcelain")
+        if (diff.isEmpty) {
           log.info(s"Index for $indexSite is unchanged")
         } else {
           git("add", "index.yaml")
