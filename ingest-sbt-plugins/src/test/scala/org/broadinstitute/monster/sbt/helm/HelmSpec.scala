@@ -39,13 +39,13 @@ class HelmSpec extends AnyFlatSpec with Matchers {
       tmpDir
     )
     val commands = new mutable.ArrayBuffer[(String, Seq[String])]()
-    val helm = new Helm(io, (cmd, args) => commands.append(cmd -> args))
+    val helm = new Helm(io)((cmd, args) => commands.append(cmd -> args))
 
     // Run the package command, ensuring we see the right value for version threaded through.
-    helm.packageChart(sourceDir, version, targetDir, (json, v) => {
+    helm.packageChart(sourceDir, version, targetDir) { (json, v) =>
       v shouldBe version
       json
-    })
+    }
 
     // Check that the expected I/O and helm commands were executed.
     io.dirCopies.toSet shouldBe Set(sourceDir -> tmpDir)
@@ -93,20 +93,15 @@ class HelmSpec extends AnyFlatSpec with Matchers {
       tmpDir
     )
     val commands = new mutable.ArrayBuffer[(String, Seq[String])]()
-    val helm = new Helm(io, (cmd, args) => commands.append(cmd -> args))
+    val helm = new Helm(io)((cmd, args) => commands.append(cmd -> args))
 
     // Run the package command, ensuring we see the right value for version threaded through.
-    helm.packageChart(
-      sourceDir,
-      version,
-      targetDir,
-      (json, v) => {
-        v shouldBe version
-        json.mapObject(
-          _.add("example-new-key", Json.obj("with-a-nested-property" -> Json.fromString(version)))
-        )
-      }
-    )
+    helm.packageChart(sourceDir, version, targetDir) { (json, v) =>
+      v shouldBe version
+      json.mapObject(
+        _.add("example-new-key", Json.obj("with-a-nested-property" -> Json.fromString(version)))
+      )
+    }
 
     // Check that the expected I/O and helm commands were executed.
     io.dirCopies.toSet shouldBe Set(sourceDir -> tmpDir)
@@ -127,11 +122,11 @@ class HelmSpec extends AnyFlatSpec with Matchers {
     val chartYaml = "blarg: glarg: glarb"
     val io = new HelmSpec.IO(Map(sourceDir / "Chart.yaml" -> chartYaml), tmpDir)
     val commands = new mutable.ArrayBuffer[(String, Seq[String])]()
-    val helm = new Helm(io, (cmd, args) => commands.append(cmd -> args))
+    val helm = new Helm(io)((cmd, args) => commands.append(cmd -> args))
 
     an[Exception] shouldBe thrownBy {
       // Run the package command, ensuring we see the right value for version threaded through.
-      helm.packageChart(sourceDir, version, targetDir, (json, _) => json)
+      helm.packageChart(sourceDir, version, targetDir)((json, _) => json)
     }
 
     commands.toArray shouldBe empty
@@ -148,11 +143,11 @@ class HelmSpec extends AnyFlatSpec with Matchers {
       tmpDir
     )
     val commands = new mutable.ArrayBuffer[(String, Seq[String])]()
-    val helm = new Helm(io, (cmd, args) => commands.append(cmd -> args))
+    val helm = new Helm(io)((cmd, args) => commands.append(cmd -> args))
 
     an[Exception] shouldBe thrownBy {
       // Run the package command, ensuring we see the right value for version threaded through.
-      helm.packageChart(sourceDir, version, targetDir, (json, _) => json)
+      helm.packageChart(sourceDir, version, targetDir)((json, _) => json)
     }
 
     commands.toArray shouldBe empty
@@ -179,20 +174,15 @@ class HelmSpec extends AnyFlatSpec with Matchers {
       tmpDir
     )
     val commands = new mutable.ArrayBuffer[(String, Seq[String])]()
-    val helm = new Helm(io, (cmd, args) => commands.append(cmd -> args))
+    val helm = new Helm(io)((cmd, args) => commands.append(cmd -> args))
 
     // Run the package command, ensuring we see the right value for version threaded through.
-    helm.packageChart(
-      sourceDir,
-      version,
-      targetDir,
-      (json, v) => {
-        v shouldBe version
-        json.mapObject(
-          _.add("example-new-key", Json.obj("with-a-nested-property" -> Json.fromString(version)))
-        )
-      }
-    )
+    helm.packageChart(sourceDir, version, targetDir) { (json, v) =>
+      v shouldBe version
+      json.mapObject(
+        _.add("example-new-key", Json.obj("with-a-nested-property" -> Json.fromString(version)))
+      )
+    }
 
     // Check that the expected I/O and helm commands were executed.
     io.dirCopies.toSet shouldBe Set(sourceDir -> tmpDir)
@@ -212,7 +202,7 @@ class HelmSpec extends AnyFlatSpec with Matchers {
   it should "lint charts" in {
     val io = new HelmSpec.IO(Map.empty[File, String], tmpDir)
     val commands = new mutable.ArrayBuffer[(String, Seq[String])]()
-    val helm = new Helm(io, (cmd, args) => commands.append(cmd -> args))
+    val helm = new Helm(io)((cmd, args) => commands.append(cmd -> args))
 
     helm.lintChart(sourceDir, valuesFile)
 

@@ -54,8 +54,7 @@ object JadeSchemaGenerator {
     MonsterSchemaValidator
       .validateSchema(sourceTables, fragments)
       .fold(
-        errs =>
-          sys.error(s"Cannot generate Jade schema because of ${errs.length} validation errors"),
+        errs => sys.error(s"Cannot generate Jade schema because of ${errs.length} validation errors"),
         identity
       )
 

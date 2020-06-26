@@ -108,10 +108,11 @@ object MsgParser {
   implicit val dateParser: MsgParser[LocalDate] = new MsgParser[LocalDate] {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-M-d")
 
-    override def parse(msg: Msg): LocalDate = msg match {
-      case str: Str => parseString("LocalDate", str)(LocalDate.parse(_, formatter))
-      case other    => throw new ConversionMismatchException("LocalDate", other)
-    }
+    override def parse(msg: Msg): LocalDate =
+      msg match {
+        case str: Str => parseString("LocalDate", str)(LocalDate.parse(_, formatter))
+        case other    => throw new ConversionMismatchException("LocalDate", other)
+      }
   }
 
   implicit val timestampParser: MsgParser[OffsetDateTime] = {

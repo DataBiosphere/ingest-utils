@@ -32,24 +32,25 @@ private[msg] object MsgOperations {
     // Helper method that uses NonEmptyList for some extra guardrails.
     // NEL is convenient here but a pain to use elsewhere compared to the
     // var-args of the wrapping method.
-    def drillDown(msg: Msg, chain: NonEmptyList[String]): Option[Msg] = msg match {
-      case Obj(fields) =>
-        val firstKey = Str(chain.head)
-        NonEmptyList.fromList(chain.tail) match {
-          case None =>
-            fields.remove(firstKey)
-          case Some(remainingFields) =>
-            fields.get(firstKey).flatMap { nested =>
-              val retVal = drillDown(nested, remainingFields)
-              if (nested.obj.isEmpty) {
-                fields.remove(firstKey)
-                ()
+    def drillDown(msg: Msg, chain: NonEmptyList[String]): Option[Msg] =
+      msg match {
+        case Obj(fields) =>
+          val firstKey = Str(chain.head)
+          NonEmptyList.fromList(chain.tail) match {
+            case None =>
+              fields.remove(firstKey)
+            case Some(remainingFields) =>
+              fields.get(firstKey).flatMap { nested =>
+                val retVal = drillDown(nested, remainingFields)
+                if (nested.obj.isEmpty) {
+                  fields.remove(firstKey)
+                  ()
+                }
+                retVal
               }
-              retVal
-            }
-        }
-      case _ => throw new NotAnObjectException(fieldChain.toList, msg)
-    }
+          }
+        case _ => throw new NotAnObjectException(fieldChain.toList, msg)
+      }
 
     NonEmptyList
       .fromList(fieldChain.toList)
@@ -81,17 +82,18 @@ private[msg] object MsgOperations {
     // Helper method that uses NonEmptyList for some extra guardrails.
     // NEL is convenient here but a pain to use elsewhere compared to the
     // var-args of the wrapping method.
-    def drillDown(msg: Msg, chain: NonEmptyList[String]): Option[Msg] = msg match {
-      case Obj(fields) =>
-        val firstKey = Str(chain.head)
-        NonEmptyList.fromList(chain.tail) match {
-          case None =>
-            fields.get(firstKey)
-          case Some(remainingFields) =>
-            fields.get(firstKey).flatMap(drillDown(_, remainingFields))
-        }
-      case _ => throw new NotAnObjectException(fieldChain.toList, msg)
-    }
+    def drillDown(msg: Msg, chain: NonEmptyList[String]): Option[Msg] =
+      msg match {
+        case Obj(fields) =>
+          val firstKey = Str(chain.head)
+          NonEmptyList.fromList(chain.tail) match {
+            case None =>
+              fields.get(firstKey)
+            case Some(remainingFields) =>
+              fields.get(firstKey).flatMap(drillDown(_, remainingFields))
+          }
+        case _ => throw new NotAnObjectException(fieldChain.toList, msg)
+      }
 
     NonEmptyList
       .fromList(fieldChain.toList)

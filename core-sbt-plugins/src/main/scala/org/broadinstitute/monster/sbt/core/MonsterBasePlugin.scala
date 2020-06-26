@@ -28,7 +28,7 @@ object MonsterBasePlugin extends AutoPlugin {
   override def requires: Plugins =
     JvmPlugin && DynVerPlugin && ScalafmtPlugin && ScoverageSbtPlugin && BuildInfoPlugin
 
-  val ScalafmtVersion = "2.4.2"
+  val ScalafmtVersion = "2.6.1"
 
   val ScalafmtConf: String =
     s"""version = $ScalafmtVersion
@@ -49,76 +49,67 @@ object MonsterBasePlugin extends AutoPlugin {
        |continuationIndent.defnSite = 2
        |
        |# Settings about when to enter newlines.
-       |danglingParentheses = true
-       |newlines.alwaysBeforeTopLevelStatements = true
+       |newlines.topLevelStatements = [before]
+       |newlines.avoidForSimpleOverflow = [punct]
        |newlines.sometimesBeforeColonInMethodReturnType = false
-       |# FIXME: The behavior here is known to be reversed from what users expect.
-       |# They've deprecated this setting and introduced a new one for 2.5.0, but
-       |# for now this is what we've got.
-       |optIn.blankLineBeforeDocstring = true
+       |newlines.implicitParamListModifierPrefer = before
+       |optIn.forceBlankLineBeforeDocstring = false
        |
        |# Settings about splitting method chains across lines.
        |includeCurlyBraceInSelectChains = false
-       |
-       |# Rules for more complicated code rewrites.
-       |rewrite.rules = [
-       |  RedundantBraces
-       |  RedundantParens
-       |]
        |""".stripMargin
 
-  override def buildSettings: Seq[Def.Setting[_]] = Seq(
-    organization := "org.broadinstitute.monster",
-    scalaVersion := "2.12.11",
-    scalacOptions ++= {
-      val snapshot = isSnapshot.value
-      val base = Seq(
-        "-deprecation",
-        "-encoding",
-        "UTF-8",
-        "-explaintypes",
-        "-feature",
-        "-target:jvm-1.8",
-        "-unchecked",
-        "-Xfatal-warnings",
-        "-Xfuture",
-        "-Xlint",
-        "-Xmax-classfile-name",
-        "200",
-        "-Yno-adapted-args",
-        "-Ypartial-unification",
-        "-Ywarn-dead-code",
-        "-Ywarn-extra-implicit",
-        "-Ywarn-inaccessible",
-        "-Ywarn-infer-any",
-        "-Ywarn-nullary-override",
-        "-Ywarn-nullary-unit",
-        "-Ywarn-numeric-widen",
-        "-Ywarn-unused",
-        "-Ywarn-value-discard"
-      )
+  override def buildSettings: Seq[Def.Setting[_]] =
+    Seq(
+      organization := "org.broadinstitute.monster",
+      scalaVersion := "2.12.11",
+      scalacOptions ++= {
+        val snapshot = isSnapshot.value
+        val base = Seq(
+          "-deprecation",
+          "-encoding",
+          "UTF-8",
+          "-explaintypes",
+          "-feature",
+          "-target:jvm-1.8",
+          "-unchecked",
+          "-Xfatal-warnings",
+          "-Xfuture",
+          "-Xlint",
+          "-Xmax-classfile-name",
+          "200",
+          "-Yno-adapted-args",
+          "-Ypartial-unification",
+          "-Ywarn-dead-code",
+          "-Ywarn-extra-implicit",
+          "-Ywarn-inaccessible",
+          "-Ywarn-infer-any",
+          "-Ywarn-nullary-override",
+          "-Ywarn-nullary-unit",
+          "-Ywarn-numeric-widen",
+          "-Ywarn-unused",
+          "-Ywarn-value-discard"
+        )
 
-      if (snapshot) {
-        // -Xcheckinit adds extra synchronization logic / null checks to every
-        // field access. It's awesome for catching problems with initialization
-        // order when doing weird things with inheritance, but it can have
-        // nontrivial performance impact, so we only enable it for SNAPSHOT builds.
-        base :+ "-Xcheckinit"
-      } else {
-        base
-      }
-    },
-    scalafmtConfig := {
-      val targetFile = (ThisBuild / baseDirectory).value / ".scalafmt.conf"
-      if (!targetFile.exists() || IO.read(targetFile) != ScalafmtConf) {
-        IO.write(targetFile, ScalafmtConf)
-      }
-      targetFile
-    },
-    scalafmtOnCompile := true,
-    // Use a Docker-compatible / URL-friendly separator for version components.
-    dynverSeparator := "-"
-  )
+        if (snapshot)
+          // -Xcheckinit adds extra synchronization logic / null checks to every
+          // field access. It's awesome for catching problems with initialization
+          // order when doing weird things with inheritance, but it can have
+          // nontrivial performance impact, so we only enable it for SNAPSHOT builds.
+          base :+ "-Xcheckinit"
+        else
+          base
+      },
+      scalafmtConfig := {
+        val targetFile = (ThisBuild / baseDirectory).value / ".scalafmt.conf"
+        if (!targetFile.exists() || IO.read(targetFile) != ScalafmtConf)
+          IO.write(targetFile, ScalafmtConf)
+        targetFile
+      },
+      scalafmtOnCompile := true,
+      // Use a Docker-compatible / URL-friendly separator for version components.
+      dynverSeparator := "-"
+    )
 
   val BetterMonadicForVersion = "0.3.1"
 
@@ -134,7 +125,9 @@ object MonsterBasePlugin extends AutoPlugin {
           "Broad Artifactory Releases" at "https://broadinstitute.jfrog.io/broadinstitute/libs-release/",
           "Broad Artifactory Snapshots" at "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
         ),
-        addCompilerPlugin("com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion),
+        addCompilerPlugin(
+          "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion
+        ),
         Compile / console / scalacOptions := (Compile / scalacOptions).value
           .filterNot(
             Set(
@@ -152,10 +145,14 @@ object MonsterBasePlugin extends AutoPlugin {
         // De-duplicate BuildInfo objects so our projects can depend on one another
         // without conflicts.
         buildInfoPackage := (ThisBuild / organization).value + ".buildinfo",
-        buildInfoObject := name.value.split('-').map(_.capitalize).mkString + "BuildInfo",
+        buildInfoObject := name.value
+          .split('-')
+          .map(_.capitalize)
+          .mkString + "BuildInfo",
         // Exclude build-info objects from test coverage.
         // NOTE: This is a regex, so we have to escape all the dots.
-        coverageExcludedPackages := buildInfoPackage.value.replaceAllLiterally(".", "\\.") + ".*"
+        coverageExcludedPackages := buildInfoPackage.value
+          .replaceAllLiterally(".", "\\.") + ".*"
       )
     )
 }

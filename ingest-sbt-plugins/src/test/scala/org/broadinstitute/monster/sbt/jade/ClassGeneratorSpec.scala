@@ -24,11 +24,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     description: String,
     input: String,
     error: String
-  ): Unit = it should description in {
-    val out = ClassGenerator
-      .generateTableClass[MonsterTable](testPackage, fragmentPackage, structPackage, input)
-    out.left.value.getMessage should include(error)
-  }
+  ): Unit =
+    it should description in {
+      val out = ClassGenerator
+        .generateTableClass[MonsterTable](testPackage, fragmentPackage, structPackage, input)
+      out.left.value.getMessage should include(error)
+    }
 
   def checkFragmentGeneration(description: String, input: String, output: String): Unit =
     it should description in {
@@ -51,10 +52,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
     description: String,
     input: String,
     error: String
-  ): Unit = it should description in {
-    val out = ClassGenerator.generateStructClass(structPackage, input)
-    out.left.value.getMessage should include(error)
-  }
+  ): Unit =
+    it should description in {
+      val out = ClassGenerator.generateStructClass(structPackage, input)
+      out.left.value.getMessage should include(error)
+    }
 
   // Happy table cases
   it should behave like checkTableGeneration(

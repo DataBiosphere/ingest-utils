@@ -11,10 +11,11 @@ import io.circe.{Decoder, Encoder}
 class JadeIdentifier private[sbt] (private[sbt] val id: String) {
   override def toString: String = id.toString
 
-  override def equals(obj: Any): Boolean = obj match {
-    case other: JadeIdentifier => id.equals(other.id)
-    case _                     => false
-  }
+  override def equals(obj: Any): Boolean =
+    obj match {
+      case other: JadeIdentifier => id.equals(other.id)
+      case _                     => false
+    }
   override def hashCode(): Int = id.hashCode
 }
 

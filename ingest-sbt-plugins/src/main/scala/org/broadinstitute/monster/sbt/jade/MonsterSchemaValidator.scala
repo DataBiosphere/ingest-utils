@@ -79,9 +79,7 @@ object MonsterSchemaValidator {
 
           val tableCols = table.columns.map(_.name) ++ table.structColumns.map(_.name)
           val fragmentCols =
-            linkedFragments.flatten.flatMap(f =>
-              f.columns.map(_.name) ++ f.structColumns.map(_.name)
-            )
+            linkedFragments.flatten.flatMap(f => f.columns.map(_.name) ++ f.structColumns.map(_.name))
 
           val collisionErrs = tableCols.intersect(fragmentCols).map { collidingName =>
             s"Collision on column name '$collidingName' in table '$tableId'"
