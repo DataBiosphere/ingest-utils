@@ -12,7 +12,7 @@ import scala.sys.process._
   * @param io helper that can interact with the local file-system
   * @param runCommand helper that can actually run Helm commands
   */
-class Helm(io: Helm.IO, runCommand: (String, Seq[String]) => Unit) {
+class Helm(io: Helm.IO)(runCommand: (String, Seq[String]) => Unit) {
 
   /**
     * Package a Helm chart, injecting the current version into Chart
@@ -24,10 +24,7 @@ class Helm(io: Helm.IO, runCommand: (String, Seq[String]) => Unit) {
     * @param injectVersionValues function which will inject a version into
     *                            the appropriate locations in values.yaml
     */
-  def packageChart(
-    chartRoot: File,
-    version: String,
-    targetDir: File,
+  def packageChart(chartRoot: File, version: String, targetDir: File)(
     injectVersionValues: (Json, String) => Json
   ): Unit = {
     // Copy the target chart into a temporary working location.
@@ -138,7 +135,7 @@ object Helm {
   }
 
   /** Helm instance which runs commands by using a locally-installed CLP. */
-  val clp: Helm = new Helm(fileSystemIO, (cmd, args) => {
+  val clp: Helm = new Helm(fileSystemIO)((cmd, args) => {
     val fullCommand = "helm" :: cmd :: args.toList
     val result = Process(fullCommand).!
     if (result != 0) {

@@ -54,24 +54,24 @@ object MonsterLibraryPlugin extends AutoPlugin {
     }
   }
 
-  override def buildSettings: Seq[Def.Setting[_]] = Seq(
-    dynverSonatypeSnapshots := true
-  )
+  override def buildSettings: Seq[Def.Setting[_]] =
+    Seq(dynverSonatypeSnapshots := true)
 
-  override def projectSettings: Seq[Def.Setting[_]] = Seq(
-    credentials ++= artifactoryCredentials.value.toSeq,
-    // Maven-style publishing is unforgivingly broken for sbt plugins, so we
-    // publish ivy-style when the plugin setting is true.
-    publishMavenStyle := !sbtPlugin.value,
-    publishTo := Some {
-      if (sbtPlugin.value) {
-        Resolver.url(
-          MonsterLibraryPlugin.ArtifactoryRealm,
-          new URL(MonsterLibraryPlugin.fullResolverPath(isSnapshot.value))
-        )
-      } else {
-        ArtifactoryRealm at fullResolverPath(isSnapshot.value)
+  override def projectSettings: Seq[Def.Setting[_]] =
+    Seq(
+      credentials ++= artifactoryCredentials.value.toSeq,
+      // Maven-style publishing is unforgivingly broken for sbt plugins, so we
+      // publish ivy-style when the plugin setting is true.
+      publishMavenStyle := !sbtPlugin.value,
+      publishTo := Some {
+        if (sbtPlugin.value) {
+          Resolver.url(
+            MonsterLibraryPlugin.ArtifactoryRealm,
+            new URL(MonsterLibraryPlugin.fullResolverPath(isSnapshot.value))
+          )
+        } else {
+          ArtifactoryRealm at fullResolverPath(isSnapshot.value)
+        }
       }
-    }
-  )
+    )
 }

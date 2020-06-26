@@ -13,19 +13,22 @@ object MonsterScioPipelinePlugin extends AutoPlugin {
   private def scioUtilsDep(module: String): ModuleID =
     "org.broadinstitute.monster" %% module % IngestSbtPluginsBuildInfo.version
 
-  override def projectSettings: Seq[Def.Setting[_]] = Seq(
-    // Set best-practice compiler flags for Scio.
-    scalacOptions ++= Seq(
-      "-Xmacro-settings:show-coder-fallback=true",
-      "-language:higherKinds"
-    ),
-    // Add our common utils library.
-    libraryDependencies ++= Seq(
-      scioUtilsDep(IngestSbtPluginsBuildInfo.scioUtilsName),
-      scioUtilsDep(IngestSbtPluginsBuildInfo.scioTestUtilsName) % s"${Test.name},${IntegrationTest.name}"
-    ),
-    // Disable scio's annoying automatic version check.
-    javaOptions += "-Dscio.ignoreVersionWarning=true",
-    UniversalPlugin.autoImport.Universal / javaOptions += "-Dscio.ignoreVersionWarning=true"
-  )
+  override def projectSettings: Seq[Def.Setting[_]] =
+    Seq(
+      // Set best-practice compiler flags for Scio.
+      scalacOptions ++= Seq(
+        "-Xmacro-settings:show-coder-fallback=true",
+        "-language:higherKinds"
+      ),
+      // Add our common utils library.
+      libraryDependencies ++= Seq(
+        scioUtilsDep(IngestSbtPluginsBuildInfo.scioUtilsName),
+        scioUtilsDep(
+          IngestSbtPluginsBuildInfo.scioTestUtilsName
+        ) % s"${Test.name},${IntegrationTest.name}"
+      ),
+      // Disable scio's annoying automatic version check.
+      javaOptions += "-Dscio.ignoreVersionWarning=true",
+      UniversalPlugin.autoImport.Universal / javaOptions += "-Dscio.ignoreVersionWarning=true"
+    )
 }
