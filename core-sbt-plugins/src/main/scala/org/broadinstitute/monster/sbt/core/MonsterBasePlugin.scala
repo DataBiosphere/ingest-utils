@@ -38,7 +38,7 @@ object MonsterBasePlugin extends AutoPlugin {
        |runner.optimizer.forceConfigStyleOnOffset = 100
        |
        |# Vertical alignment settings.
-       |align = most
+       |align.preset = some
        |align.openParenCallSite = false
        |align.openParenDefnSite = false
        |assumeStandardLibraryStripMargin = true
