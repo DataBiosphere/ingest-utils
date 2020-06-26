@@ -79,10 +79,7 @@ object MonsterHelmPlugin extends AutoPlugin {
         val packageTarget = helmStagingDirectory.value
         IO.createDirectory(packageTarget)
         if (filteredChanges.nonEmpty || packageTarget.list().isEmpty) {
-          Helm.clp.packageChart(
-            baseDirectory.value,
-            version.value,
-            packageTarget,
+          Helm.clp.packageChart(baseDirectory.value, version.value, packageTarget)(
             helmInjectVersionValues.value
           )
         }
