@@ -71,9 +71,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object NoColumns {
        |  implicit val encoder: _root_.io.circe.Encoder[NoColumns] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    noColumns => _root_.io.circe.Json.obj(
        |    )
        |
        |  def init(): NoColumns = {
@@ -100,9 +98,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object OneColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[OneColumn] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    oneColumn => _root_.io.circe.Json.obj(
+       |      "test_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(oneColumn.testColumn)
        |    )
        |
        |  def init(): OneColumn = {
@@ -165,9 +162,15 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object AllColumns {
        |  implicit val encoder: _root_.io.circe.Encoder[AllColumns] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    allColumns => _root_.io.circe.Json.obj(
+       |      "bool_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Boolean]].apply(allColumns.boolColumn),
+       |      "float_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Double]].apply(allColumns.floatColumn),
+       |      "int_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(allColumns.intColumn),
+       |      "string_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.stringColumn),
+       |      "date_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.LocalDate]].apply(allColumns.dateColumn),
+       |      "timestamp_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.OffsetDateTime]].apply(allColumns.timestampColumn),
+       |      "dir_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.dirColumn),
+       |      "file_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.fileColumn)
        |    )
        |
        |  def init(): AllColumns = {

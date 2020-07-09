@@ -132,6 +132,14 @@ object ClassGenerator {
         .map(f => s"\n      $f")
         .mkString(",")
 
+      val camelCaseName = snakeToCamel(baseTable.name, titleCase = false)
+      val encodingMapping = baseTable.columns.map { column =>
+        val dataType = column.`type`.modify(column.datatype.asScala)
+        val fieldName = getFieldName(column.name)
+        s"""
+           |      "${column.name}" -> _root_.io.circe.Encoder[$dataType].apply($camelCaseName.$fieldName)""".stripMargin
+      }.mkString(",")
+
       if (baseTable.tableFragments.isEmpty) {
         s"""package $targetPackage
            |
@@ -139,9 +147,7 @@ object ClassGenerator {
            |
            |object $name {
            |  implicit val encoder: _root_.io.circe.Encoder[$name] =
-           |    _root_.io.circe.derivation.deriveEncoder(
-           |      _root_.io.circe.derivation.renaming.snakeCase,
-           |      _root_.scala.None
+           |    $camelCaseName => _root_.io.circe.Json.obj($encodingMapping
            |    )
            |
            |  def init($requiredParams): $name = {
@@ -162,9 +168,7 @@ object ClassGenerator {
            |    _root_.scala.collection.immutable.Set(${composedKeys.mkString(", ")})
            |
            |  implicit val encoder: _root_.io.circe.Encoder[$name] =
-           |    _root_.io.circe.derivation.deriveEncoder(
-           |      _root_.io.circe.derivation.renaming.snakeCase,
-           |      _root_.scala.None
+           |    $camelCaseName => _root_.io.circe.Json.obj($encodingMapping
            |    ).mapJsonObject { obj =>
            |      val composed = obj.filterKeys($composedKeySet.contains(_))
            |      val notComposed = obj.filterKeys(!$composedKeySet.contains(_))
