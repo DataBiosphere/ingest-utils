@@ -132,23 +132,13 @@ object ClassGenerator {
         .map(f => s"\n      $f")
         .mkString(",")
 
-      val camelCaseName = snakeToCamel(baseTable.name, titleCase = false)
-      val encodingMapping = baseTable.columns.map { column =>
-        val dataType = column.`type`.modify(column.datatype.asScala)
-        val fieldName = getFieldName(column.name)
-        s"""
-           |      "${column.name}" -> _root_.io.circe.Encoder[$dataType].apply($camelCaseName.$fieldName)""".stripMargin
-      }.mkString(",")
-
       if (baseTable.tableFragments.isEmpty) {
         s"""package $targetPackage
            |
            |case class $name($classParams)
            |
            |object $name {
-           |  implicit val encoder: _root_.io.circe.Encoder[$name] =
-           |    $camelCaseName => _root_.io.circe.Json.obj($encodingMapping
-           |    )
+           |  ${generateBasicEncoder(baseTable, structPackage)}
            |
            |  def init($requiredParams): $name = {
            |    $name($initClassParams)
@@ -167,9 +157,7 @@ object ClassGenerator {
            |  val $composedKeySet: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
            |    _root_.scala.collection.immutable.Set(${composedKeys.mkString(", ")})
            |
-           |  implicit val encoder: _root_.io.circe.Encoder[$name] =
-           |    $camelCaseName => _root_.io.circe.Json.obj($encodingMapping
-           |    ).mapJsonObject { obj =>
+           |  ${generateBasicEncoder(baseTable, structPackage)}.mapJsonObject { obj =>
            |      val composed = obj.filterKeys($composedKeySet.contains(_))
            |      val notComposed = obj.filterKeys(!$composedKeySet.contains(_))
            |
@@ -185,6 +173,39 @@ object ClassGenerator {
            |""".stripMargin
       }
     }
+
+  // TODO make a method to generate the full encoder (including table fragements)
+
+  // TODO document
+  def generateBasicEncoder[T <: ClassSpec: Decoder](baseTable: T, structPackage: String): String = {
+    val camelCaseName = snakeToCamel(baseTable.name, titleCase = false)
+    val titleCaseName = snakeToCamel(baseTable.name, titleCase = true)
+    val columnEncoderMappings = baseTable.columns.map { column =>
+      val columnType = column.`type`.modify(column.datatype.asScala)
+      generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
+    }
+    val structEncoderMappings = baseTable.structColumns.map { column =>
+      print("-------I found a struct!!!")
+      val columnType = column.`type`.modify(getStructType(structPackage, column))
+      generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
+    }
+    val fullMapping = (columnEncoderMappings ++ structEncoderMappings).mkString(",")
+
+    s"""implicit val encoder: _root_.io.circe.Encoder[$titleCaseName] =
+       |    $camelCaseName => _root_.io.circe.Json.obj($fullMapping
+       |    )""".stripMargin
+  }
+
+  // TODO document
+  def generateEncoderMappingLine(
+    columnName: String,
+    dataType: String,
+    objectName: String,
+    fieldName: String
+  ): String = {
+    s"""
+       |      "$columnName" -> _root_.io.circe.Encoder[$dataType].apply($objectName.$fieldName)""".stripMargin
+  }
 
   /**
     * Generate a Scala case class corresponding to a nested struct.

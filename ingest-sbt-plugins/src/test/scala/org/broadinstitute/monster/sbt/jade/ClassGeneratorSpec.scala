@@ -440,9 +440,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object StructColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[StructColumn] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    structColumn => _root_.io.circe.Json.obj(
+       |      "comment" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$structPackage.RowComment]].apply(structColumn.comment)
        |    )
        |
        |  def init(): StructColumn = {
@@ -472,9 +471,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object RequiredStruct {
        |  implicit val encoder: _root_.io.circe.Encoder[RequiredStruct] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    requiredStruct => _root_.io.circe.Json.obj(
+       |      "required_comment" -> _root_.io.circe.Encoder[_root_.$structPackage.Comment].apply(requiredStruct.requiredComment)
        |    )
        |
        |  def init(
@@ -505,9 +503,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object RepeatedStruct {
        |  implicit val encoder: _root_.io.circe.Encoder[RepeatedStruct] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    repeatedStruct => _root_.io.circe.Json.obj(
+       |      "repeated_comment" -> _root_.io.circe.Encoder[_root_.scala.collection.immutable.List[_root_.$structPackage.Comment123]].apply(repeatedStruct.repeatedComment)
        |    )
        |
        |  def init(): RepeatedStruct = {
