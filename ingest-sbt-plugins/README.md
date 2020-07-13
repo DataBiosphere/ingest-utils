@@ -151,9 +151,8 @@ this chart can provide value by:
 1. Wiring the `publish` task to also publish the Helm chart, along with any JARs / containers
 2. Adding some pre-processing logic to inject the git-based version of the whole
    project into chart metadata before publishing
-
-In the future, we may extend this plugin to also `lint` / `template` charts
-as part of the `test` task.
+3. Wiring the `test` tasks to ensure that the output of `helm template` produces valid
+   YAML when run with example inputs
 
 ### Using the Plugin
 The plugin's existing tasks are intended to be used from a GitHub action (though
@@ -190,3 +189,14 @@ steps:
 
 The `ChartReleaserToken` secret must contain a personal access token
 with "repo" scope, to support uploading new releases.
+
+### Testing Charts
+Writing Helm charts can be a very frustrating task at scale. To help with the lowest
+bar of error-detection, the `MonsterHelmPlugin` overwrites the `test` task to check:
+1. The chart's templating logic is correct (no bad value references, no invalid functions)
+2. The output of templating is valid YAML
+
+To perform these checks, the plugin requires users to define example inputs for the
+chart. By default, these inputs should be placed in an `example-values` directory
+within the chart. The inputs should be defined in YAML, as if they were a `values.yaml`
+file passed when calling `helm install`.
