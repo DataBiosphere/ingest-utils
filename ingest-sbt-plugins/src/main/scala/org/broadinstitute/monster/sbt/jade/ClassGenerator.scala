@@ -183,15 +183,37 @@ object ClassGenerator {
 
   // TODO make a method to generate the full encoder (including table fragements)
 
-  // TODO document
+  // TODO move this elsewhere?
   def generateEncoder(
+    tableId: JadeIdentifier,
+    simpleColumns: Vector[SimpleColumn],
+    structColumns: Vector[StructColumn],
+    structPackage: String,
+    isStructClass: Boolean = false
+  ): String = {
+    val camelCaseName = snakeToCamel(tableId, titleCase = false)
+    val titleCaseName = snakeToCamel(tableId, titleCase = true)
+    val encoderMapping = generateEncoderMapping(tableId, simpleColumns, structColumns, structPackage)
+
+    if (isStructClass) {
+      s"""implicit val encoder: _root_.io.circe.Encoder[$titleCaseName] = { $camelCaseName =>
+         |    val jsonObj = $encoderMapping
+         |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+         |  }""".stripMargin
+    } else {
+      s"""implicit val encoder: _root_.io.circe.Encoder[$titleCaseName] =
+         |    $camelCaseName => $encoderMapping""".stripMargin
+    }
+  }
+
+  // TODO document
+  def generateEncoderMapping(
     tableId: JadeIdentifier,
     simpleColumns: Vector[SimpleColumn],
     structColumns: Vector[StructColumn],
     structPackage: String
   ): String = {
     val camelCaseName = snakeToCamel(tableId, titleCase = false)
-    val titleCaseName = snakeToCamel(tableId, titleCase = true)
     val columnEncoderMappings = simpleColumns.map { column =>
       val columnType = column.`type`.modify(column.datatype.asScala)
       generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
@@ -200,10 +222,8 @@ object ClassGenerator {
       val columnType = column.`type`.modify(getStructType(structPackage, column))
       generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
     }
-    val fullMapping = (columnEncoderMappings ++ structEncoderMappings).mkString(",")
-
-    s"""implicit val encoder: _root_.io.circe.Encoder[$titleCaseName] =
-       |    $camelCaseName => _root_.io.circe.Json.obj($fullMapping
+    val mapping = (columnEncoderMappings ++ structEncoderMappings).mkString(",")
+    s"""_root_.io.circe.Json.obj($mapping
        |    )""".stripMargin
   }
 
@@ -211,11 +231,11 @@ object ClassGenerator {
   def generateEncoderMappingLine(
     columnName: String,
     dataType: String,
-    objectName: String,
+    className: String,
     fieldName: String
   ): String = {
     s"""
-       |      "$columnName" -> _root_.io.circe.Encoder[$dataType].apply($objectName.$fieldName)""".stripMargin
+       |      "$columnName" -> _root_.io.circe.Encoder[$dataType].apply($className.$fieldName)""".stripMargin
   }
 
   /**
@@ -232,17 +252,20 @@ object ClassGenerator {
       val name = snakeToCamel(baseStruct.name, titleCase = true)
       val fields = baseStruct.fields.map(fieldForColumn)
       val classParams = fields.map(f => s"\n$f").mkString(",")
-      val encoder = generateEncoder(baseStruct.name, baseStruct.fields, Vector.empty, structPackage)
+      val encoder = generateEncoder(
+        baseStruct.name,
+        baseStruct.fields,
+        Vector.empty,
+        structPackage,
+        isStructClass = true
+      )
 
       s"""package $structPackage
          |
          |case class $name($classParams)
          |
          |object $name {
-         |
-         |  $encoder.mapJson { obj =>
-         |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-         |    }
+         |  $encoder
          |}
          |""".stripMargin
     }
