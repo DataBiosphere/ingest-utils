@@ -200,7 +200,7 @@ object ClassGenerator {
          |    )
          |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
          |  }""".stripMargin
-    } else if (tableFragments.nonEmpty) { // TODO use map instead of json obj
+    } else if (tableFragments.nonEmpty) {
       s"""$encoderDeclaration = { $camelCaseName =>
          |    val jsonObj = _root_.io.circe.JsonObject($encoderMapping
          |    )

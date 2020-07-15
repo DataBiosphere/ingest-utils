@@ -564,7 +564,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |""".stripMargin
   )
 
-  it should "be able to compile encoder similar to composed table encoder" in {
+  it should "be able to compile something similar to composed-fragments table encoder" in {
     """case class ComposedTable(
       id: _root_.scala.Long,
       otherTable: _root_.scala.Option[_root_.scala.Long],
@@ -595,7 +595,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
             otherTable = _root_.scala.Option.empty[_root_.scala.Long],
             thirdTable = _root_.scala.Option.empty[_root_.scala.Long])
         }
-      }""" should compile // TODO update wording here
+      }""" should compile
   }
 
   it should behave like checkFragmentGeneration(
