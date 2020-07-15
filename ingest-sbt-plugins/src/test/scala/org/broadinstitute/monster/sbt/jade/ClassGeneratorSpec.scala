@@ -563,7 +563,42 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |}
        |""".stripMargin
   )
-  // TODO add a test to make sure this compiles
+
+  it should "output compile-able struct code with all types" in {
+    s"""package $testPackage
+
+      case class ComposedTable(
+      id: _root_.scala.Long,
+      otherTable: _root_.scala.Option[_root_.$fragmentPackage.OtherTable],
+      thirdTable: _root_.scala.Option[_root_.$fragmentPackage.ThirdTable])
+
+      object ComposedTable {
+        val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
+          _root_.scala.collection.immutable.Set("other_table", "third_table")
+
+        implicit val encoder: _root_.io.circe.Encoder[ComposedTable] = { composedTable =>
+          val jsonObj = _root_.io.circe.Json.obj(
+            "id" -> _root_.io.circe.Encoder[_root_.scala.Long].apply(composedTable.id),
+            "other_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.OtherTable]].apply(composedTable.otherTable),
+            "third_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.ThirdTable]].apply(composedTable.thirdTable)
+          )
+          val composed = jsonObj.filterKeys(composedKeys.contains(_))
+          val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
+
+          composed.toIterable.foldLeft(notComposed) {
+            case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
+          }
+        }
+
+        def init(
+          id: _root_.scala.Long): ComposedTable = {
+          ComposedTable(
+            id = id,
+            otherTable = _root_.scala.Option.empty[_root_.$fragmentPackage.OtherTable],
+            thirdTable = _root_.scala.Option.empty[_root_.$fragmentPackage.ThirdTable])
+        }
+      }""" should compile
+  }
 
   it should behave like checkFragmentGeneration(
     "generate table-fragment classes",
@@ -902,7 +937,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
        |  }
        |}
-       |""".stripMargin // TODO update
+       |""".stripMargin
   )
   it should "output compile-able struct code with escaped fields" in {
     """case class TypeField(
