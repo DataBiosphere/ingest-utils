@@ -131,60 +131,36 @@ object ClassGenerator {
       val initClassParams = (simpleInitFields ++ structInitFields ++ composedInitFields)
         .map(f => s"\n      $f")
         .mkString(",")
-
-      if (baseTable.tableFragments.isEmpty) {
-        val encoder = generateEncoder(
-          baseTable.name,
-          baseTable.columns,
-          baseTable.structColumns,
-          baseTable.tableFragments,
-          structPackage,
-          fragmentPackage
-        )
-        s"""package $targetPackage
-           |
-           |case class $name($classParams)
-           |
-           |object $name {
-           |  $encoder
-           |
-           |  def init($requiredParams): $name = {
-           |    $name($initClassParams)
-           |  }
-           |}
-           |""".stripMargin
-      } else {
-        val composedKeys = baseTable.tableFragments.map(_.id).map(k => s""""$k"""")
-        val encoder = generateEncoder(
-          baseTable.name,
-          baseTable.columns,
-          baseTable.structColumns,
-          baseTable.tableFragments,
-          structPackage,
-          fragmentPackage
-        ) // TODO move this out of big conditional
-
-        s"""package $targetPackage
-           |
-           |case class $name($classParams)
-           |
-           |object $name {
+      val encoder = generateEncoder(
+        baseTable.name,
+        baseTable.columns,
+        baseTable.structColumns,
+        baseTable.tableFragments,
+        structPackage,
+        fragmentPackage
+      )
+      val composedKeys = baseTable.tableFragments.map(_.id).map(k => s""""$k"""")
+      val composedKeysDeclaration = if (composedKeys.nonEmpty) {
+        s"""
            |  val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
-           |    _root_.scala.collection.immutable.Set(${composedKeys.mkString(", ")})
-           |
-           |  $encoder
-           |
-           |  def init($requiredParams): $name = {
-           |    $name($initClassParams)
-           |  }
-           |}
-           |""".stripMargin
-      }
+           |    _root_.scala.collection.immutable.Set(${composedKeys.mkString(", ")})"""
+      } else ""
+
+      s"""package $targetPackage
+         |
+         |case class $name($classParams)
+         |
+         |object $name {$composedKeysDeclaration
+         |  $encoder
+         |
+         |  def init($requiredParams): $name = {
+         |    $name($initClassParams)
+         |  }
+         |}
+         |""".stripMargin
     }
 
-  // TODO make a method to generate the full encoder (including table fragements)
-
-  // TODO move this elsewhere?
+  // TODO document
   def generateEncoder(
     tableId: JadeIdentifier,
     simpleColumns: Vector[SimpleColumn],
@@ -196,6 +172,7 @@ object ClassGenerator {
   ): String = {
     val camelCaseName = snakeToCamel(tableId, titleCase = false)
     val titleCaseName = snakeToCamel(tableId, titleCase = true)
+    val encoderDeclaration = s"implicit val encoder: _root_.io.circe.Encoder[${titleCaseName}]"
     val encoderMapping = generateEncoderMapping(
       tableId,
       simpleColumns,
@@ -206,12 +183,12 @@ object ClassGenerator {
     )
 
     if (isStructClass) {
-      s"""implicit val encoder: _root_.io.circe.Encoder[$titleCaseName] = { $camelCaseName =>
+      s"""$encoderDeclaration = { $camelCaseName =>
          |    val jsonObj = $encoderMapping
          |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
          |  }""".stripMargin
     } else if (tableFragments.nonEmpty) {
-      s"""implicit val encoder: _root_.io.circe.Encoder[$titleCaseName] = { $camelCaseName =>
+      s"""$encoderDeclaration = { $camelCaseName =>
          |    val jsonObj = $encoderMapping
          |    val composed = jsonObj.filterKeys(composedKeys.contains(_))
          |    val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
@@ -221,7 +198,7 @@ object ClassGenerator {
          |    }
          |  }""".stripMargin
     } else {
-      s"""implicit val encoder: _root_.io.circe.Encoder[$titleCaseName] =
+      s"""$encoderDeclaration =
          |    $camelCaseName => $encoderMapping""".stripMargin
     }
   }
@@ -285,7 +262,7 @@ object ClassGenerator {
         Vector.empty,
         Vector.empty,
         structPackage,
-        "", //TODO fix this
+        "", //TODO make this default to None
         isStructClass = true
       )
 
