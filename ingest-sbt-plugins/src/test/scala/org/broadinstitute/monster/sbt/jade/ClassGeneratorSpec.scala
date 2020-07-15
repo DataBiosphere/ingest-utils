@@ -540,7 +540,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |    _root_.scala.collection.immutable.Set("other_table", "third_table")
        |
        |  implicit val encoder: _root_.io.circe.Encoder[ComposedTable] = { composedTable =>
-       |    val jsonObj = _root_.io.circe.Json.obj(
+       |    val jsonObj = _root_.io.circe.JsonObject(
        |      "id" -> _root_.io.circe.Encoder[_root_.scala.Long].apply(composedTable.id),
        |      "other_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.OtherTable]].apply(composedTable.otherTable),
        |      "third_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.ThirdTable]].apply(composedTable.thirdTable)
@@ -548,9 +548,9 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |    val composed = jsonObj.filterKeys(composedKeys.contains(_))
        |    val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
        |
-       |    composed.toIterable.foldLeft(notComposed) {
+       |    _root_.io.circe.Json.fromJsonObject(composed.toIterable.foldLeft(notComposed) {
        |      case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
-       |    }
+       |    })
        |  }
        |
        |  def init(
@@ -564,40 +564,38 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |""".stripMargin
   )
 
-  it should "output compile-able struct code with all types" in {
-    s"""package $testPackage
-
-      case class ComposedTable(
+  it should "be able to compile encoder similar to composed table encoder" in {
+    """case class ComposedTable(
       id: _root_.scala.Long,
-      otherTable: _root_.scala.Option[_root_.$fragmentPackage.OtherTable],
-      thirdTable: _root_.scala.Option[_root_.$fragmentPackage.ThirdTable])
+      otherTable: _root_.scala.Option[_root_.scala.Long],
+      thirdTable: _root_.scala.Option[_root_.scala.Long])
 
       object ComposedTable {
         val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
           _root_.scala.collection.immutable.Set("other_table", "third_table")
 
         implicit val encoder: _root_.io.circe.Encoder[ComposedTable] = { composedTable =>
-          val jsonObj = _root_.io.circe.Json.obj(
+          val jsonObj = _root_.io.circe.JsonObject(
             "id" -> _root_.io.circe.Encoder[_root_.scala.Long].apply(composedTable.id),
-            "other_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.OtherTable]].apply(composedTable.otherTable),
-            "third_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.ThirdTable]].apply(composedTable.thirdTable)
+            "other_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(composedTable.otherTable),
+            "third_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(composedTable.thirdTable)
           )
           val composed = jsonObj.filterKeys(composedKeys.contains(_))
           val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
 
-          composed.toIterable.foldLeft(notComposed) {
+          _root_.io.circe.Json.fromJsonObject(composed.toIterable.foldLeft(notComposed) {
             case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
-          }
+          })
         }
 
         def init(
           id: _root_.scala.Long): ComposedTable = {
           ComposedTable(
             id = id,
-            otherTable = _root_.scala.Option.empty[_root_.$fragmentPackage.OtherTable],
-            thirdTable = _root_.scala.Option.empty[_root_.$fragmentPackage.ThirdTable])
+            otherTable = _root_.scala.Option.empty[_root_.scala.Long],
+            thirdTable = _root_.scala.Option.empty[_root_.scala.Long])
         }
-      }""" should compile
+      }""" should compile // TODO update wording here
   }
 
   it should behave like checkFragmentGeneration(

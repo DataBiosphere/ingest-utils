@@ -137,13 +137,14 @@ object ClassGenerator {
         baseTable.structColumns,
         baseTable.tableFragments,
         structPackage,
-        fragmentPackage
+        Some(fragmentPackage)
       )
       val composedKeys = baseTable.tableFragments.map(_.id).map(k => s""""$k"""")
       val composedKeysDeclaration = if (composedKeys.nonEmpty) {
         s"""
            |  val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
-           |    _root_.scala.collection.immutable.Set(${composedKeys.mkString(", ")})"""
+           |    _root_.scala.collection.immutable.Set(${composedKeys.mkString(", ")})
+           |"""
       } else ""
 
       s"""package $targetPackage
@@ -167,7 +168,7 @@ object ClassGenerator {
     structColumns: Vector[StructColumn],
     tableFragments: Vector[JadeIdentifier],
     structPackage: String,
-    fragmentPackage: String,
+    fragmentPackage: Option[String] = None,
     isStructClass: Boolean = false
   ): String = {
     val camelCaseName = snakeToCamel(tableId, titleCase = false)
@@ -184,22 +185,25 @@ object ClassGenerator {
 
     if (isStructClass) {
       s"""$encoderDeclaration = { $camelCaseName =>
-         |    val jsonObj = $encoderMapping
+         |    val jsonObj = _root_.io.circe.Json.obj($encoderMapping
+         |    )
          |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
          |  }""".stripMargin
-    } else if (tableFragments.nonEmpty) {
+    } else if (tableFragments.nonEmpty) { // TODO use map instead of json obj
       s"""$encoderDeclaration = { $camelCaseName =>
-         |    val jsonObj = $encoderMapping
+         |    val jsonObj = _root_.io.circe.JsonObject($encoderMapping
+         |    )
          |    val composed = jsonObj.filterKeys(composedKeys.contains(_))
          |    val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
          |
-         |    composed.toIterable.foldLeft(notComposed) {
+         |    _root_.io.circe.Json.fromJsonObject(composed.toIterable.foldLeft(notComposed) {
          |      case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
-         |    }
+         |    })
          |  }""".stripMargin
     } else {
       s"""$encoderDeclaration =
-         |    $camelCaseName => $encoderMapping""".stripMargin
+         |    $camelCaseName => _root_.io.circe.Json.obj($encoderMapping
+         |    )""".stripMargin
     }
   }
 
@@ -210,7 +214,7 @@ object ClassGenerator {
     structColumns: Vector[StructColumn],
     tableFragments: Vector[JadeIdentifier],
     structPackage: String,
-    fragmentPackage: String
+    fragmentPackage: Option[String] = None
   ): String = {
     val camelCaseName = snakeToCamel(tableId, titleCase = false)
     val columnEncoderMappings = simpleColumns.map { column =>
@@ -221,14 +225,13 @@ object ClassGenerator {
       val columnType = column.`type`.modify(getStructType(structPackage, column))
       generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
     }
-    val fragmentEncoderMappings = tableFragments.map { fragment =>
-      val columnType = ColumnType.Optional.modify(composedTableType(fragmentPackage, fragment))
-      generateEncoderMappingLine(fragment.id, columnType, camelCaseName, getFieldName(fragment))
+    val fragmentEncoderMappings = tableFragments.flatMap { fragment =>
+      for (fragPackage <- fragmentPackage) yield {
+        val columnType = ColumnType.Optional.modify(composedTableType(fragPackage, fragment))
+        generateEncoderMappingLine(fragment.id, columnType, camelCaseName, getFieldName(fragment))
+      }
     }
-    val mapping =
-      (columnEncoderMappings ++ structEncoderMappings ++ fragmentEncoderMappings).mkString(",")
-    s"""_root_.io.circe.Json.obj($mapping
-       |    )""".stripMargin
+    (columnEncoderMappings ++ structEncoderMappings ++ fragmentEncoderMappings).mkString(",")
   }
 
   // TODO document
@@ -262,7 +265,6 @@ object ClassGenerator {
         Vector.empty,
         Vector.empty,
         structPackage,
-        "", //TODO make this default to None
         isStructClass = true
       )
 
