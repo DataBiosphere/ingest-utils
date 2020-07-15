@@ -161,9 +161,20 @@ object ClassGenerator {
          |""".stripMargin
     }
 
-  // TODO document
+  /**
+    * Generate custom encoder that maps the field names of a scala class
+    * to their corresponding schema column names.
+    *
+    * @param className the snake-case name of the Jade table or struct for which the encoder is being constructed
+    * @param simpleColumns the set of columns without nested fields on the Jade table
+    * @param structColumns the set of columns with nested fields in the Jade table
+    * @param tableFragments the set of partial table definitions associated with the Jade table
+    * @param structPackage  package where any structs referenced by the table should be located
+    * @param fragmentPackage package where any fragments referenced by the table should be located
+    * @param isStructClass true only if the encoder is being generated for a struct
+    */
   def generateEncoder(
-    tableId: JadeIdentifier,
+    className: JadeIdentifier,
     simpleColumns: Vector[SimpleColumn],
     structColumns: Vector[StructColumn],
     tableFragments: Vector[JadeIdentifier],
@@ -171,11 +182,11 @@ object ClassGenerator {
     fragmentPackage: Option[String] = None,
     isStructClass: Boolean = false
   ): String = {
-    val camelCaseName = snakeToCamel(tableId, titleCase = false)
-    val titleCaseName = snakeToCamel(tableId, titleCase = true)
+    val camelCaseName = snakeToCamel(className, titleCase = false)
+    val titleCaseName = snakeToCamel(className, titleCase = true)
     val encoderDeclaration = s"implicit val encoder: _root_.io.circe.Encoder[${titleCaseName}]"
     val encoderMapping = generateEncoderMapping(
-      tableId,
+      className,
       simpleColumns,
       structColumns,
       tableFragments,
@@ -207,16 +218,26 @@ object ClassGenerator {
     }
   }
 
-  // TODO document
+  /**
+    * Generate a mapping for a custom encoder that maps the field names of a scala class
+    * to their corresponding schema column names.
+    *
+    * @param className the snake-case name of the Jade table or struct for which the encoder is being constructed
+    * @param simpleColumns the set of columns without nested fields on the Jade table
+    * @param structColumns the set of columns with nested fields in the Jade table
+    * @param tableFragments the set of partial table definitions associated with the Jade table
+    * @param structPackage package where any structs referenced by the table should be located
+    * @param fragmentPackage package where any fragments referenced by the table should be located
+    */
   def generateEncoderMapping(
-    tableId: JadeIdentifier,
+    className: JadeIdentifier,
     simpleColumns: Vector[SimpleColumn],
     structColumns: Vector[StructColumn],
     tableFragments: Vector[JadeIdentifier],
     structPackage: String,
     fragmentPackage: Option[String] = None
   ): String = {
-    val camelCaseName = snakeToCamel(tableId, titleCase = false)
+    val camelCaseName = snakeToCamel(className, titleCase = false)
     val columnEncoderMappings = simpleColumns.map { column =>
       val columnType = column.`type`.modify(column.datatype.asScala)
       generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
@@ -234,7 +255,14 @@ object ClassGenerator {
     (columnEncoderMappings ++ structEncoderMappings ++ fragmentEncoderMappings).mkString(",")
   }
 
-  // TODO document
+  /**
+    * Generate a single line of code to be used in a custom encoder for a scala class.
+    *
+    * @param columnName the snake-case name of the field/column
+    * @param dataType the scala datatype of the field/column for which the mapping is being generated
+    * @param className the snake-case name of the Jade table or struct for which the encoder is being generated
+    * @param fieldName the name of the field for which the mapping is being generated
+    */
   def generateEncoderMappingLine(
     columnName: String,
     dataType: String,
