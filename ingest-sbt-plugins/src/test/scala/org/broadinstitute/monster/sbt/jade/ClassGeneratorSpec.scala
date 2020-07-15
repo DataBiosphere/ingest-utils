@@ -539,18 +539,19 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |  val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
        |    _root_.scala.collection.immutable.Set("other_table", "third_table")
        |
-       |  implicit val encoder: _root_.io.circe.Encoder[ComposedTable] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJsonObject { obj =>
-       |      val composed = obj.filterKeys(composedKeys.contains(_))
-       |      val notComposed = obj.filterKeys(!composedKeys.contains(_))
+       |  implicit val encoder: _root_.io.circe.Encoder[ComposedTable] = { composedTable =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |      "id" -> _root_.io.circe.Encoder[_root_.scala.Long].apply(composedTable.id),
+       |      "other_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.OtherTable]].apply(composedTable.otherTable),
+       |      "third_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.ThirdTable]].apply(composedTable.thirdTable)
+       |    )
+       |    val composed = jsonObj.filterKeys(composedKeys.contains(_))
+       |    val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
        |
-       |      composed.toIterable.foldLeft(notComposed) {
-       |        case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
-       |      }
+       |    composed.toIterable.foldLeft(notComposed) {
+       |      case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
        |    }
+       |  }
        |
        |  def init(
        |    id: _root_.scala.Long): ComposedTable = {
@@ -562,6 +563,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |}
        |""".stripMargin
   )
+  // TODO add a test to make sure this compiles
 
   it should behave like checkFragmentGeneration(
     "generate table-fragment classes",
@@ -873,7 +875,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
             _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
           }
         }
-       """ should compile // TODO update
+       """ should compile
   }
 
   it should behave like checkStructGeneration(
@@ -893,13 +895,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |`type`: _root_.scala.Option[_root_.scala.Double])
        |
        |object TypeField {
-       |  implicit val encoder: _root_.io.circe.Encoder[TypeField] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-       |    }
+       |  implicit val encoder: _root_.io.circe.Encoder[TypeField] = { typeField =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |      "type" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Double]].apply(typeField.`type`)
+       |    )
+       |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+       |  }
        |}
        |""".stripMargin // TODO update
   )
