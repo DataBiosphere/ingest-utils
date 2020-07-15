@@ -62,7 +62,7 @@ representation in Jade dataset generation.
 | primary_key | `X` | REQUIRED | Column added to `primaryKey` array of enclosing table |
 | required | `X` | REQUIRED | None |
 | optional | `scala.Option[X]` | NULLABLE | "Normal" column |
-| repeated | `scala.Array[X]` | REPEATED | `array_of` set to true for column |
+| repeated | `scala.collection.immutable.List[X]` | REPEATED | `array_of` set to true for column |
 
 ##### Column Links
 Our column link specification replaces Jade's built-in relationship construct.
@@ -184,11 +184,8 @@ steps:
   - name: Publish
     run: sbt publish reindexHelmRepository
     env:
-      CR_TOKEN: ${{ secrets.ChartReleaserToken }}
+      CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
-
-The `ChartReleaserToken` secret must contain a personal access token
-with "repo" scope, to support uploading new releases.
 
 ### Testing Charts
 Writing Helm charts can be a very frustrating task at scale. To help with the lowest
