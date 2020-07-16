@@ -252,7 +252,9 @@ object ClassGenerator {
         generateEncoderMappingLine(fragment.id, columnType, camelCaseName, getFieldName(fragment))
       }
     }
-    (columnEncoderMappings ++ structEncoderMappings ++ fragmentEncoderMappings).mkString(",")
+    (columnEncoderMappings ++ structEncoderMappings ++ fragmentEncoderMappings)
+      .map(f => s"\n      $f")
+      .mkString(",")
   }
 
   /**
@@ -269,8 +271,7 @@ object ClassGenerator {
     className: String,
     fieldName: String
   ): String = {
-    s"""
-       |      "$columnName" -> _root_.io.circe.Encoder[$dataType].apply($className.$fieldName)""".stripMargin
+    s""""$columnName" -> _root_.io.circe.Encoder[$dataType].apply($className.$fieldName)""".stripMargin
   }
 
   /**
