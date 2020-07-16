@@ -71,9 +71,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object NoColumns {
        |  implicit val encoder: _root_.io.circe.Encoder[NoColumns] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    noColumns => _root_.io.circe.Json.obj(
        |    )
        |
        |  def init(): NoColumns = {
@@ -100,9 +98,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object OneColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[OneColumn] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    oneColumn => _root_.io.circe.Json.obj(
+       |      "test_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(oneColumn.testColumn)
        |    )
        |
        |  def init(): OneColumn = {
@@ -165,9 +162,15 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object AllColumns {
        |  implicit val encoder: _root_.io.circe.Encoder[AllColumns] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    allColumns => _root_.io.circe.Json.obj(
+       |      "bool_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Boolean]].apply(allColumns.boolColumn),
+       |      "float_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Double]].apply(allColumns.floatColumn),
+       |      "int_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(allColumns.intColumn),
+       |      "string_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.stringColumn),
+       |      "date_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.LocalDate]].apply(allColumns.dateColumn),
+       |      "timestamp_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.OffsetDateTime]].apply(allColumns.timestampColumn),
+       |      "dir_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.dirColumn),
+       |      "file_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.fileColumn)
        |    )
        |
        |  def init(): AllColumns = {
@@ -199,11 +202,17 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        fileColumn: _root_.scala.Option[_root_.java.lang.String])
 
        object AllColumns {
-         implicit val encoder: _root_.io.circe.Encoder[AllColumns] =
-           _root_.io.circe.derivation.deriveEncoder(
-             _root_.io.circe.derivation.renaming.snakeCase,
-             _root_.scala.None
-           )
+        implicit val encoder: _root_.io.circe.Encoder[AllColumns] =
+          allColumns => _root_.io.circe.Json.obj(
+            "bool_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Boolean]].apply(allColumns.boolColumn),
+            "float_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Double]].apply(allColumns.floatColumn),
+            "int_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(allColumns.intColumn),
+            "string_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.stringColumn),
+            "date_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.LocalDate]].apply(allColumns.dateColumn),
+            "timestamp_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.OffsetDateTime]].apply(allColumns.timestampColumn),
+            "dir_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.dirColumn),
+            "file_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allColumns.fileColumn)
+          )
 
          def init(): AllColumns = {
            AllColumns(
@@ -239,9 +248,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object RequiredColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[RequiredColumn] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    requiredColumn => _root_.io.circe.Json.obj(
+       |      "test_required" -> _root_.io.circe.Encoder[_root_.java.lang.String].apply(requiredColumn.testRequired)
        |    )
        |
        |  def init(
@@ -271,9 +279,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object KeyColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[KeyColumn] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    keyColumn => _root_.io.circe.Json.obj(
+       |      "test_key" -> _root_.io.circe.Encoder[_root_.java.lang.String].apply(keyColumn.testKey)
        |    )
        |
        |  def init(
@@ -303,9 +310,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object ArrayColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[ArrayColumn] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    arrayColumn => _root_.io.circe.Json.obj(
+       |      "test_array" -> _root_.io.circe.Encoder[_root_.scala.collection.immutable.List[_root_.scala.Double]].apply(arrayColumn.testArray)
        |    )
        |
        |  def init(): ArrayColumn = {
@@ -351,9 +357,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object AllModifiers {
        |  implicit val encoder: _root_.io.circe.Encoder[AllModifiers] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    allModifiers => _root_.io.circe.Json.obj(
+       |      "key_column" -> _root_.io.circe.Encoder[_root_.java.time.LocalDate].apply(allModifiers.keyColumn),
+       |      "normal_column" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Boolean]].apply(allModifiers.normalColumn),
+       |      "array_column" -> _root_.io.circe.Encoder[_root_.scala.collection.immutable.List[_root_.scala.Long]].apply(allModifiers.arrayColumn),
+       |      "required_column" -> _root_.io.circe.Encoder[_root_.scala.Double].apply(allModifiers.requiredColumn)
        |    )
        |
        |  def init(
@@ -397,9 +405,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object TypeColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[TypeColumn] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    typeColumn => _root_.io.circe.Json.obj(
+       |      "type" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Double]].apply(typeColumn.`type`)
        |    )
        |
        |  def init(): TypeColumn = {
@@ -433,9 +440,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object StructColumn {
        |  implicit val encoder: _root_.io.circe.Encoder[StructColumn] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    structColumn => _root_.io.circe.Json.obj(
+       |      "comment" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$structPackage.RowComment]].apply(structColumn.comment)
        |    )
        |
        |  def init(): StructColumn = {
@@ -465,9 +471,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object RequiredStruct {
        |  implicit val encoder: _root_.io.circe.Encoder[RequiredStruct] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    requiredStruct => _root_.io.circe.Json.obj(
+       |      "required_comment" -> _root_.io.circe.Encoder[_root_.$structPackage.Comment].apply(requiredStruct.requiredComment)
        |    )
        |
        |  def init(
@@ -498,9 +503,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object RepeatedStruct {
        |  implicit val encoder: _root_.io.circe.Encoder[RepeatedStruct] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    repeatedStruct => _root_.io.circe.Json.obj(
+       |      "repeated_comment" -> _root_.io.circe.Encoder[_root_.scala.collection.immutable.List[_root_.$structPackage.Comment123]].apply(repeatedStruct.repeatedComment)
        |    )
        |
        |  def init(): RepeatedStruct = {
@@ -535,18 +539,19 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |  val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
        |    _root_.scala.collection.immutable.Set("other_table", "third_table")
        |
-       |  implicit val encoder: _root_.io.circe.Encoder[ComposedTable] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJsonObject { obj =>
-       |      val composed = obj.filterKeys(composedKeys.contains(_))
-       |      val notComposed = obj.filterKeys(!composedKeys.contains(_))
+       |  implicit val encoder: _root_.io.circe.Encoder[ComposedTable] = { composedTable =>
+       |    val jsonObj = _root_.io.circe.JsonObject(
+       |      "id" -> _root_.io.circe.Encoder[_root_.scala.Long].apply(composedTable.id),
+       |      "other_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.OtherTable]].apply(composedTable.otherTable),
+       |      "third_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.$fragmentPackage.ThirdTable]].apply(composedTable.thirdTable)
+       |    )
+       |    val composed = jsonObj.filterKeys(composedKeys.contains(_))
+       |    val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
        |
-       |      composed.toIterable.foldLeft(notComposed) {
-       |        case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
-       |      }
-       |    }
+       |    _root_.io.circe.Json.fromJsonObject(composed.toIterable.foldLeft(notComposed) {
+       |      case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
+       |    })
+       |  }
        |
        |  def init(
        |    id: _root_.scala.Long): ComposedTable = {
@@ -558,6 +563,40 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |}
        |""".stripMargin
   )
+
+  it should "be able to compile something similar to composed-fragments table encoder" in {
+    """case class ComposedTable(
+      id: _root_.scala.Long,
+      otherTable: _root_.scala.Option[_root_.scala.Long],
+      thirdTable: _root_.scala.Option[_root_.scala.Long])
+
+      object ComposedTable {
+        val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
+          _root_.scala.collection.immutable.Set("other_table", "third_table")
+
+        implicit val encoder: _root_.io.circe.Encoder[ComposedTable] = { composedTable =>
+          val jsonObj = _root_.io.circe.JsonObject(
+            "id" -> _root_.io.circe.Encoder[_root_.scala.Long].apply(composedTable.id),
+            "other_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(composedTable.otherTable),
+            "third_table" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(composedTable.thirdTable)
+          )
+          val composed = jsonObj.filterKeys(composedKeys.contains(_))
+          val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
+
+          _root_.io.circe.Json.fromJsonObject(composed.toIterable.foldLeft(notComposed) {
+            case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
+          })
+        }
+
+        def init(
+          id: _root_.scala.Long): ComposedTable = {
+          ComposedTable(
+            id = id,
+            otherTable = _root_.scala.Option.empty[_root_.scala.Long],
+            thirdTable = _root_.scala.Option.empty[_root_.scala.Long])
+        }
+      }""" should compile
+  }
 
   it should behave like checkFragmentGeneration(
     "generate table-fragment classes",
@@ -578,9 +617,8 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |
        |object FragmentClass {
        |  implicit val encoder: _root_.io.circe.Encoder[FragmentClass] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
+       |    fragmentClass => _root_.io.circe.Json.obj(
+       |      "id" -> _root_.io.circe.Encoder[_root_.scala.Long].apply(fragmentClass.id)
        |    )
        |
        |  def init(
@@ -621,13 +659,11 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |case class NoFields()
        |
        |object NoFields {
-       |  implicit val encoder: _root_.io.circe.Encoder[NoFields] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-       |    }
+       |  implicit val encoder: _root_.io.circe.Encoder[NoFields] = { noFields =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |    )
+       |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+       |  }
        |}
        |""".stripMargin
   )
@@ -648,13 +684,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |testField: _root_.scala.Option[_root_.java.lang.String])
        |
        |object OneField {
-       |  implicit val encoder: _root_.io.circe.Encoder[OneField] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-       |    }
+       |  implicit val encoder: _root_.io.circe.Encoder[OneField] = { oneField =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |      "test_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(oneField.testField)
+       |    )
+       |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+       |  }
        |}
        |""".stripMargin
   )
@@ -710,36 +745,48 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |fileField: _root_.scala.Option[_root_.java.lang.String])
        |
        |object AllFields {
-       |  implicit val encoder: _root_.io.circe.Encoder[AllFields] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-       |    }
+       |  implicit val encoder: _root_.io.circe.Encoder[AllFields] = { allFields =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |      "bool_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Boolean]].apply(allFields.boolField),
+       |      "float_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Double]].apply(allFields.floatField),
+       |      "int_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(allFields.intField),
+       |      "string_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allFields.stringField),
+       |      "date_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.LocalDate]].apply(allFields.dateField),
+       |      "timestamp_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.OffsetDateTime]].apply(allFields.timestampField),
+       |      "dir_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allFields.dirField),
+       |      "file_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allFields.fileField)
+       |    )
+       |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+       |  }
        |}
        |""".stripMargin
   )
   it should "output compile-able struct code with all types" in {
     """case class AllFields(
-       boolField: _root_.scala.Option[_root_.scala.Boolean],
-       floatField: _root_.scala.Option[_root_.scala.Double],
-       intField: _root_.scala.Option[_root_.scala.Long],
-       stringField: _root_.scala.Option[_root_.java.lang.String],
-       dateField: _root_.scala.Option[_root_.java.time.LocalDate],
-       timestampField: _root_.scala.Option[_root_.java.time.OffsetDateTime],
-       dirField: _root_.scala.Option[_root_.java.lang.String],
-       fileField: _root_.scala.Option[_root_.java.lang.String])
+        boolField: _root_.scala.Option[_root_.scala.Boolean],
+        floatField: _root_.scala.Option[_root_.scala.Double],
+        intField: _root_.scala.Option[_root_.scala.Long],
+        stringField: _root_.scala.Option[_root_.java.lang.String],
+        dateField: _root_.scala.Option[_root_.java.time.LocalDate],
+        timestampField: _root_.scala.Option[_root_.java.time.OffsetDateTime],
+        dirField: _root_.scala.Option[_root_.java.lang.String],
+        fileField: _root_.scala.Option[_root_.java.lang.String])
 
-       object AllFields {
-         implicit val encoder: _root_.io.circe.Encoder[AllFields] =
-           _root_.io.circe.derivation.deriveEncoder(
-             _root_.io.circe.derivation.renaming.snakeCase,
-             _root_.scala.None
-           ).mapJson { obj =>
-             _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-           }
-       }
+        object AllFields {
+          implicit val encoder: _root_.io.circe.Encoder[AllFields] = { allFields =>
+            val jsonObj = _root_.io.circe.Json.obj(
+              "bool_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Boolean]].apply(allFields.boolField),
+              "float_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Double]].apply(allFields.floatField),
+              "int_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Long]].apply(allFields.intField),
+              "string_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allFields.stringField),
+              "date_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.LocalDate]].apply(allFields.dateField),
+              "timestamp_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.time.OffsetDateTime]].apply(allFields.timestampField),
+              "dir_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allFields.dirField),
+              "file_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.java.lang.String]].apply(allFields.fileField)
+            )
+            _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+          }
+        }
        """ should compile
   }
   it should behave like checkStructGeneration(
@@ -760,13 +807,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |testRequired: _root_.java.lang.String)
        |
        |object RequiredField {
-       |  implicit val encoder: _root_.io.circe.Encoder[RequiredField] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-       |    }
+       |  implicit val encoder: _root_.io.circe.Encoder[RequiredField] = { requiredField =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |      "test_required" -> _root_.io.circe.Encoder[_root_.java.lang.String].apply(requiredField.testRequired)
+       |    )
+       |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+       |  }
        |}
        |""".stripMargin
   )
@@ -788,13 +834,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |testArray: _root_.scala.collection.immutable.List[_root_.scala.Double])
        |
        |object ArrayField {
-       |  implicit val encoder: _root_.io.circe.Encoder[ArrayField] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-       |    }
+       |  implicit val encoder: _root_.io.circe.Encoder[ArrayField] = { arrayField =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |      "test_array" -> _root_.io.circe.Encoder[_root_.scala.collection.immutable.List[_root_.scala.Double]].apply(arrayField.testArray)
+       |    )
+       |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+       |  }
        |}
        |""".stripMargin
   )
@@ -833,31 +878,36 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |requiredField: _root_.scala.Double)
        |
        |object AllModifiers {
-       |  implicit val encoder: _root_.io.circe.Encoder[AllModifiers] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-       |    }
+       |  implicit val encoder: _root_.io.circe.Encoder[AllModifiers] = { allModifiers =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |      "key_field" -> _root_.io.circe.Encoder[_root_.java.time.LocalDate].apply(allModifiers.keyField),
+       |      "normal_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Boolean]].apply(allModifiers.normalField),
+       |      "array_field" -> _root_.io.circe.Encoder[_root_.scala.collection.immutable.List[_root_.scala.Long]].apply(allModifiers.arrayField),
+       |      "required_field" -> _root_.io.circe.Encoder[_root_.scala.Double].apply(allModifiers.requiredField)
+       |    )
+       |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+       |  }
        |}
        |""".stripMargin
   )
   it should "output compile-able struct code with all modifiers" in {
     """case class AllModifiers(
-       keyField: _root_.java.time.LocalDate,
-       normalField: _root_.scala.Option[_root_.scala.Boolean],
-       arrayField: _root_.scala.collection.immutable.List[_root_.scala.Long])
+        keyField: _root_.java.time.LocalDate,
+        normalField: _root_.scala.Option[_root_.scala.Boolean],
+        arrayField: _root_.scala.collection.immutable.List[_root_.scala.Long],
+        requiredField: _root_.scala.Double)
 
-       object AllModifiers {
-         implicit val encoder: _root_.io.circe.Encoder[AllModifiers] =
-           _root_.io.circe.derivation.deriveEncoder(
-             _root_.io.circe.derivation.renaming.snakeCase,
-             _root_.scala.None
-           ).mapJson { obj =>
-             _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-           }
-       }
+        object AllModifiers {
+          implicit val encoder: _root_.io.circe.Encoder[AllModifiers] = { allModifiers =>
+            val jsonObj = _root_.io.circe.Json.obj(
+              "key_field" -> _root_.io.circe.Encoder[_root_.java.time.LocalDate].apply(allModifiers.keyField),
+              "normal_field" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Boolean]].apply(allModifiers.normalField),
+              "array_field" -> _root_.io.circe.Encoder[_root_.scala.collection.immutable.List[_root_.scala.Long]].apply(allModifiers.arrayField),
+              "required_field" -> _root_.io.circe.Encoder[_root_.scala.Double].apply(allModifiers.requiredField)
+            )
+            _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+          }
+        }
        """ should compile
   }
 
@@ -878,13 +928,12 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
        |`type`: _root_.scala.Option[_root_.scala.Double])
        |
        |object TypeField {
-       |  implicit val encoder: _root_.io.circe.Encoder[TypeField] =
-       |    _root_.io.circe.derivation.deriveEncoder(
-       |      _root_.io.circe.derivation.renaming.snakeCase,
-       |      _root_.scala.None
-       |    ).mapJson { obj =>
-       |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-       |    }
+       |  implicit val encoder: _root_.io.circe.Encoder[TypeField] = { typeField =>
+       |    val jsonObj = _root_.io.circe.Json.obj(
+       |      "type" -> _root_.io.circe.Encoder[_root_.scala.Option[_root_.scala.Double]].apply(typeField.`type`)
+       |    )
+       |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+       |  }
        |}
        |""".stripMargin
   )

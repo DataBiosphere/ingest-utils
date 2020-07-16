@@ -131,56 +131,148 @@ object ClassGenerator {
       val initClassParams = (simpleInitFields ++ structInitFields ++ composedInitFields)
         .map(f => s"\n      $f")
         .mkString(",")
-
-      if (baseTable.tableFragments.isEmpty) {
-        s"""package $targetPackage
-           |
-           |case class $name($classParams)
-           |
-           |object $name {
-           |  implicit val encoder: _root_.io.circe.Encoder[$name] =
-           |    _root_.io.circe.derivation.deriveEncoder(
-           |      _root_.io.circe.derivation.renaming.snakeCase,
-           |      _root_.scala.None
-           |    )
-           |
-           |  def init($requiredParams): $name = {
-           |    $name($initClassParams)
-           |  }
-           |}
-           |""".stripMargin
-      } else {
-        val composedKeySet = "composedKeys"
-        val composedKeys = baseTable.tableFragments.map(_.id).map(k => s""""$k"""")
-
-        s"""package $targetPackage
-           |
-           |case class $name($classParams)
-           |
-           |object $name {
-           |  val $composedKeySet: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
+      val encoder = generateEncoder(
+        baseTable.name,
+        baseTable.columns,
+        baseTable.structColumns,
+        baseTable.tableFragments,
+        structPackage,
+        Some(fragmentPackage)
+      )
+      val composedKeys = baseTable.tableFragments.map(_.id).map(k => s""""$k"""")
+      val composedKeysDeclaration = if (composedKeys.nonEmpty) {
+        s"""
+           |  val composedKeys: _root_.scala.collection.immutable.Set[_root_.java.lang.String] =
            |    _root_.scala.collection.immutable.Set(${composedKeys.mkString(", ")})
-           |
-           |  implicit val encoder: _root_.io.circe.Encoder[$name] =
-           |    _root_.io.circe.derivation.deriveEncoder(
-           |      _root_.io.circe.derivation.renaming.snakeCase,
-           |      _root_.scala.None
-           |    ).mapJsonObject { obj =>
-           |      val composed = obj.filterKeys($composedKeySet.contains(_))
-           |      val notComposed = obj.filterKeys(!$composedKeySet.contains(_))
-           |
-           |      composed.toIterable.foldLeft(notComposed) {
-           |        case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
-           |      }
-           |    }
-           |
-           |  def init($requiredParams): $name = {
-           |    $name($initClassParams)
-           |  }
-           |}
-           |""".stripMargin
+           |"""
+      } else ""
+
+      s"""package $targetPackage
+         |
+         |case class $name($classParams)
+         |
+         |object $name {$composedKeysDeclaration
+         |  $encoder
+         |
+         |  def init($requiredParams): $name = {
+         |    $name($initClassParams)
+         |  }
+         |}
+         |""".stripMargin
+    }
+
+  /**
+    * Generate custom encoder that maps the field names of a scala class
+    * to their corresponding schema column names.
+    *
+    * @param className the snake-case name of the Jade table or struct for which the encoder is being constructed
+    * @param simpleColumns the set of columns without nested fields on the Jade table
+    * @param structColumns the set of columns with nested fields in the Jade table
+    * @param tableFragments the set of partial table definitions associated with the Jade table
+    * @param structPackage  package where any structs referenced by the table should be located
+    * @param fragmentPackage package where any fragments referenced by the table should be located
+    * @param isStructClass true only if the encoder is being generated for a struct
+    */
+  def generateEncoder(
+    className: JadeIdentifier,
+    simpleColumns: Vector[SimpleColumn],
+    structColumns: Vector[StructColumn],
+    tableFragments: Vector[JadeIdentifier],
+    structPackage: String,
+    fragmentPackage: Option[String] = None,
+    isStructClass: Boolean = false
+  ): String = {
+    val camelCaseName = snakeToCamel(className, titleCase = false)
+    val titleCaseName = snakeToCamel(className, titleCase = true)
+    val encoderDeclaration = s"implicit val encoder: _root_.io.circe.Encoder[${titleCaseName}]"
+    val encoderMapping = generateEncoderMapping(
+      className,
+      simpleColumns,
+      structColumns,
+      tableFragments,
+      structPackage,
+      fragmentPackage
+    )
+
+    if (isStructClass) {
+      s"""$encoderDeclaration = { $camelCaseName =>
+         |    val jsonObj = _root_.io.circe.Json.obj($encoderMapping
+         |    )
+         |    _root_.io.circe.Json.fromString(jsonObj.dropNullValues.noSpaces)
+         |  }""".stripMargin
+    } else if (tableFragments.nonEmpty) {
+      s"""$encoderDeclaration = { $camelCaseName =>
+         |    val jsonObj = _root_.io.circe.JsonObject($encoderMapping
+         |    )
+         |    val composed = jsonObj.filterKeys(composedKeys.contains(_))
+         |    val notComposed = jsonObj.filterKeys(!composedKeys.contains(_))
+         |
+         |    _root_.io.circe.Json.fromJsonObject(composed.toIterable.foldLeft(notComposed) {
+         |      case (acc, (_, subTable)) => acc.deepMerge(subTable.asObject.get)
+         |    })
+         |  }""".stripMargin
+    } else {
+      s"""$encoderDeclaration =
+         |    $camelCaseName => _root_.io.circe.Json.obj($encoderMapping
+         |    )""".stripMargin
+    }
+  }
+
+  /**
+    * Generate a mapping for a custom encoder that maps the field names of a scala class
+    * to their corresponding schema column names.
+    *
+    * @param className the snake-case name of the Jade table or struct for which the encoder is being constructed
+    * @param simpleColumns the set of columns without nested fields on the Jade table
+    * @param structColumns the set of columns with nested fields in the Jade table
+    * @param tableFragments the set of partial table definitions associated with the Jade table
+    * @param structPackage package where any structs referenced by the table should be located
+    * @param fragmentPackage package where any fragments referenced by the table should be located
+    */
+  def generateEncoderMapping(
+    className: JadeIdentifier,
+    simpleColumns: Vector[SimpleColumn],
+    structColumns: Vector[StructColumn],
+    tableFragments: Vector[JadeIdentifier],
+    structPackage: String,
+    fragmentPackage: Option[String] = None
+  ): String = {
+    val camelCaseName = snakeToCamel(className, titleCase = false)
+    val columnEncoderMappings = simpleColumns.map { column =>
+      val columnType = column.`type`.modify(column.datatype.asScala)
+      generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
+    }
+    val structEncoderMappings = structColumns.map { column =>
+      val columnType = column.`type`.modify(getStructType(structPackage, column))
+      generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
+    }
+    val fragmentEncoderMappings = tableFragments.flatMap { fragment =>
+      for (fragPackage <- fragmentPackage) yield {
+        val columnType = ColumnType.Optional.modify(composedTableType(fragPackage, fragment))
+        generateEncoderMappingLine(fragment.id, columnType, camelCaseName, getFieldName(fragment))
       }
     }
+    (columnEncoderMappings ++ structEncoderMappings ++ fragmentEncoderMappings)
+      .map(f => s"\n      $f")
+      .mkString(",")
+  }
+
+  /**
+    * Generate a single line of code to be used in a custom encoder for a scala class.
+    *
+    * @param columnName the snake-case name of the field/column
+    * @param dataType the scala datatype of the field/column for which the mapping is being generated
+    * @param className the snake-case name of the Jade table or struct for which the encoder is being generated
+    * @param fieldName the name of the field for which the mapping is being generated
+    */
+  def generateEncoderMappingLine(
+    columnName: String,
+    dataType: String,
+    className: String,
+    fieldName: String
+  ): String = {
+    s""""$columnName" -> _root_.io.circe.Encoder[$dataType].apply($className.$fieldName)""".stripMargin
+  }
 
   /**
     * Generate a Scala case class corresponding to a nested struct.
@@ -196,19 +288,21 @@ object ClassGenerator {
       val name = snakeToCamel(baseStruct.name, titleCase = true)
       val fields = baseStruct.fields.map(fieldForColumn)
       val classParams = fields.map(f => s"\n$f").mkString(",")
+      val encoder = generateEncoder(
+        baseStruct.name,
+        baseStruct.fields,
+        Vector.empty,
+        Vector.empty,
+        structPackage,
+        isStructClass = true
+      )
 
       s"""package $structPackage
          |
          |case class $name($classParams)
          |
          |object $name {
-         |  implicit val encoder: _root_.io.circe.Encoder[$name] =
-         |    _root_.io.circe.derivation.deriveEncoder(
-         |      _root_.io.circe.derivation.renaming.snakeCase,
-         |      _root_.scala.None
-         |    ).mapJson { obj =>
-         |      _root_.io.circe.Json.fromString(obj.dropNullValues.noSpaces)
-         |    }
+         |  $encoder
          |}
          |""".stripMargin
     }
