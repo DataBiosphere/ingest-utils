@@ -35,6 +35,5 @@ abstract class ScioApp[Args](
     pipelineBuilder.buildPipeline(pipelineContext, parsedArgs)
     val result = pipelineContext.run().waitUntilDone()
     postProcess(result)
-    ()
   }
 }
