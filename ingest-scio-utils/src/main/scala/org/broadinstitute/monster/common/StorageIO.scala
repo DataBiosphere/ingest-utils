@@ -49,14 +49,15 @@ object StorageIO {
   def writeJsonLists(
     messages: SCollection[Msg],
     description: String,
-    outputPrefix: String
+    outputPrefix: String,
+    numShards: Int = 0
   ): ClosedTap[String] =
     messages
       .transform(s"Stringify '$description' messages")(
         _.map(upack.transform(_, StringRenderer()).toString)
       )
       .withName(s"Write '$description' messages to '$outputPrefix'")
-      .saveAsTextFile(outputPrefix, suffix = ".json")
+      .saveAsTextFile(outputPrefix, suffix = ".json", numShards = numShards)
 
   /**
     * Write modeled messages to storage for use by downstream components.
