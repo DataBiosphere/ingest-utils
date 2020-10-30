@@ -46,7 +46,7 @@ object StorageIO {
     * Each message will be written to a single line in a part-file under the given
     * output prefix.
     */
-  def writeJsonLists(
+  def writeJsonListsGeneric(
     messages: SCollection[Msg],
     description: String,
     outputPrefix: String,
@@ -69,7 +69,7 @@ object StorageIO {
     messages: SCollection[M],
     description: String,
     outputPrefix: String,
-    numShards: Int
+    numShards: Int = 0
   ): ClosedTap[String] =
     messages
       .transform(s"Stringify '$description' messages")(

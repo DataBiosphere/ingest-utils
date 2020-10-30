@@ -68,7 +68,7 @@ class StorageIOSpec extends PipelineSpec {
   it should "write generic messages as JSON-list" in {
     File.temporaryDirectory().foreach { tmpDir =>
       runWithRealContext(PipelineOptionsFactory.create()) { sc =>
-        StorageIO.writeJsonLists(
+        StorageIO.writeJsonListsGeneric(
           sc.parallelize(msgs),
           "Test Write",
           tmpDir.pathAsString
