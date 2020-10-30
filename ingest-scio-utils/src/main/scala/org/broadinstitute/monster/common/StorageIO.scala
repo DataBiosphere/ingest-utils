@@ -68,12 +68,13 @@ object StorageIO {
   def writeJsonLists[M: Encoder](
     messages: SCollection[M],
     description: String,
-    outputPrefix: String
+    outputPrefix: String,
+    numShards: Int = 0
   ): ClosedTap[String] =
     messages
       .transform(s"Stringify '$description' messages")(
         _.map(_.asJson.printWith(circePrinter))
       )
       .withName(s"Write '$description' messages to '$outputPrefix'")
-      .saveAsTextFile(outputPrefix, suffix = ".json")
+      .saveAsTextFile(outputPrefix, suffix = ".json", numShards = numShards)
 }
