@@ -69,7 +69,7 @@ object StorageIO {
     messages: SCollection[M],
     description: String,
     outputPrefix: String,
-    numShards: Int = 0
+    numShards: Int
   ): ClosedTap[String] =
     messages
       .transform(s"Stringify '$description' messages")(
