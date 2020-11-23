@@ -40,6 +40,20 @@ object StorageIO {
       .textFile(filePattern)
       .transform(s"Parse '$description' messages")(_.map(JsonParser.parseEncodedJson))
 
+  def writeJsonListsCommon[M](
+    messages: SCollection[M],
+    func: M => String,
+    description: String,
+    outputPrefix: String,
+    numShards: Int = 0
+  ): ClosedTap[String] =
+    messages
+      .transform(s"Stringify '$description' messages")(
+        _.map(func)
+      )
+      .withName(s"Write '$description' messages to '$outputPrefix'")
+      .saveAsTextFile(outputPrefix, suffix = ".json", numShards = numShards)
+
   /**
     * Write unmodeled messages to storage for use by downstream components.
     *
@@ -52,12 +66,13 @@ object StorageIO {
     outputPrefix: String,
     numShards: Int = 0
   ): ClosedTap[String] =
-    messages
-      .transform(s"Stringify '$description' messages")(
-        _.map(upack.transform(_, StringRenderer()).toString)
-      )
-      .withName(s"Write '$description' messages to '$outputPrefix'")
-      .saveAsTextFile(outputPrefix, suffix = ".json", numShards = numShards)
+    writeJsonListsCommon(
+      messages,
+      (msg: Msg) => upack.transform(msg, StringRenderer()).toString,
+      description,
+      outputPrefix,
+      numShards = numShards
+    )
 
   /**
     * Write modeled messages to storage for use by downstream components.
@@ -71,10 +86,11 @@ object StorageIO {
     outputPrefix: String,
     numShards: Int = 0
   ): ClosedTap[String] =
-    messages
-      .transform(s"Stringify '$description' messages")(
-        _.map(_.asJson.printWith(circePrinter))
-      )
-      .withName(s"Write '$description' messages to '$outputPrefix'")
-      .saveAsTextFile(outputPrefix, suffix = ".json", numShards = numShards)
+    writeJsonListsCommon(
+      messages,
+      (msg: M) => msg.asJson.printWith(circePrinter),
+      description,
+      outputPrefix,
+      numShards = numShards
+    )
 }
