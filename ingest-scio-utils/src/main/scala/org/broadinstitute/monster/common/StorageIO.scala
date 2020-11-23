@@ -40,24 +40,39 @@ object StorageIO {
       .textFile(filePattern)
       .transform(s"Parse '$description' messages")(_.map(JsonParser.parseEncodedJson))
 
-  /**
-    * Write unmodeled messages to storage for use by downstream components.
-    *
-    * Each message will be written to a single line in a part-file under the given
-    * output prefix.
-    */
-  def writeJsonLists(
-    messages: SCollection[Msg],
+  def writeJsonListsCommon[M](
+    messages: SCollection[M],
+    func: M => String,
     description: String,
     outputPrefix: String,
     numShards: Int = 0
   ): ClosedTap[String] =
     messages
       .transform(s"Stringify '$description' messages")(
-        _.map(upack.transform(_, StringRenderer()).toString)
+        _.map(func)
       )
       .withName(s"Write '$description' messages to '$outputPrefix'")
       .saveAsTextFile(outputPrefix, suffix = ".json", numShards = numShards)
+
+  /**
+    * Write unmodeled messages to storage for use by downstream components.
+    *
+    * Each message will be written to a single line in a part-file under the given
+    * output prefix.
+    */
+  def writeJsonListsGeneric(
+    messages: SCollection[Msg],
+    description: String,
+    outputPrefix: String,
+    numShards: Int = 0
+  ): ClosedTap[String] =
+    writeJsonListsCommon(
+      messages,
+      (msg: Msg) => upack.transform(msg, StringRenderer()).toString,
+      description,
+      outputPrefix,
+      numShards = numShards
+    )
 
   /**
     * Write modeled messages to storage for use by downstream components.
@@ -68,12 +83,14 @@ object StorageIO {
   def writeJsonLists[M: Encoder](
     messages: SCollection[M],
     description: String,
-    outputPrefix: String
+    outputPrefix: String,
+    numShards: Int = 0
   ): ClosedTap[String] =
-    messages
-      .transform(s"Stringify '$description' messages")(
-        _.map(_.asJson.printWith(circePrinter))
-      )
-      .withName(s"Write '$description' messages to '$outputPrefix'")
-      .saveAsTextFile(outputPrefix, suffix = ".json")
+    writeJsonListsCommon(
+      messages,
+      (msg: M) => msg.asJson.printWith(circePrinter),
+      description,
+      outputPrefix,
+      numShards = numShards
+    )
 }

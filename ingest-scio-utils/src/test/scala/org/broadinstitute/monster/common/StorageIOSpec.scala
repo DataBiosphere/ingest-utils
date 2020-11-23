@@ -68,12 +68,31 @@ class StorageIOSpec extends PipelineSpec {
   it should "write generic messages as JSON-list" in {
     File.temporaryDirectory().foreach { tmpDir =>
       runWithRealContext(PipelineOptionsFactory.create()) { sc =>
-        StorageIO.writeJsonLists(
+        StorageIO.writeJsonListsGeneric(
           sc.parallelize(msgs),
           "Test Write",
           tmpDir.pathAsString
         )
       }
+      val written =
+        tmpDir.listRecursively().filter(_.name.endsWith(".json")).flatMap(_.lines).toList
+      written should contain allElementsOf jsons
+    }
+  }
+
+  it should "write a specified number of output files" in {
+    val numShards = 2
+    File.temporaryDirectory().foreach { tmpDir =>
+      runWithRealContext(PipelineOptionsFactory.create()) { sc =>
+        StorageIO.writeJsonListsGeneric(
+          sc.parallelize(msgs),
+          "Test Write",
+          tmpDir.pathAsString,
+          numShards = numShards
+        )
+      }
+      val numFiles = tmpDir.listRecursively().count(_.name.endsWith(".json"))
+      numFiles shouldBe numShards
       val written =
         tmpDir.listRecursively().filter(_.name.endsWith(".json")).flatMap(_.lines).toList
       written should contain allElementsOf jsons
