@@ -1,6 +1,6 @@
 package org.broadinstitute.monster.common.msg
 
-import io.circe.Json
+import io.circe.{Json, ParsingFailure}
 import upack.Msg
 import upickle.core.Visitor
 
@@ -13,10 +13,24 @@ object JsonParser {
     * better preserve distinctions between numeric types.
     */
   def parseEncodedJson(json: String): Msg = {
-    val maybeParsed = io.circe.parser.parse(json)
+    val maybeParsed: Either[ParsingFailure, Json] = io.circe.parser.parse(json)
     maybeParsed.fold(
       err => throw new Exception(s"Failed to parse input line as JSON: $json", err),
       js => transform(js, Msg)
+    )
+  }
+
+  /**
+    * Parse encoded JSON into a upack Msg.
+    *
+    * This differs from parseEncodedJson by not throwing on error, but rather
+    * returning an Either[ParsingFailure, Msg].
+    */
+  def parseEncodedJsonReturningFailure(json: String): Either[ParsingFailure, Msg] = {
+    val maybeParsed: Either[ParsingFailure, Json] = io.circe.parser.parse(json)
+    maybeParsed.fold(
+      err => Left(err),
+      js => Right(transform(js, Msg))
     )
   }
 

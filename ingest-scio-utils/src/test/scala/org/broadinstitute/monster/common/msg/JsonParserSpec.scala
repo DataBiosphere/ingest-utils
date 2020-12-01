@@ -52,4 +52,14 @@ class JsonParserSpec extends AnyFlatSpec with Matchers {
       Obj(Str("foo") -> Str("bar"), Str("ok") -> Bool(true))
     )
   }
+
+  it should "parse JSON objects and return the result" in {
+    val result = JsonParser.parseEncodedJsonReturningFailure("[]")
+    result.isRight shouldBe true
+  }
+
+  it should "parse invalid JSON objects and return the result" in {
+    val result = JsonParser.parseEncodedJsonReturningFailure("invalid")
+    result.isLeft shouldBe true
+  }
 }
