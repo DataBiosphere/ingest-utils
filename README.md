@@ -70,6 +70,6 @@ the tag. Make a value judgement on whether to bump the `major`, `minor`, or `pat
 component of the version, then run:
 ```bash
 git tag vX.Y.Z
-git push vX.Y.Z
+git push origin vX.Y.Z
 ```
 GitHub will pick up the new tag and run the publish operation.
