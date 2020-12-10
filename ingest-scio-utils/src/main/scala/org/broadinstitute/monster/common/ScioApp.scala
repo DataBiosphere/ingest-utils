@@ -1,9 +1,7 @@
 package org.broadinstitute.monster.common
 
-import caseapp.Name
 import caseapp.core.help.Help
 import caseapp.core.parser.Parser
-import caseapp.core.util.Formatter
 import com.spotify.scio.{ContextAndArgs, ScioResult}
 
 /**
@@ -18,9 +16,6 @@ abstract class ScioApp[Args](
   /** Builder which can convert command-line args into a pipeline. */
   def pipelineBuilder: PipelineBuilder[Args]
 
-  /** Formatter for CLP arguments which retains the formatting of the Scala name. */
-  private val argFormatter: Formatter[Name] = name => name.name
-
   /** a post processing function if so desired that operates on a ScioResult */
   def postProcess: ScioResult => Unit = _ => ()
 
@@ -32,7 +27,7 @@ abstract class ScioApp[Args](
     */
   def main(args: Array[String]): Unit = {
     val (pipelineContext, parsedArgs) =
-      ContextAndArgs.typed[Args](args)(parser.nameFormatter(argFormatter), help)
+      ContextAndArgs.typed[Args](args)
     pipelineBuilder.buildPipeline(pipelineContext, parsedArgs)
     val result = pipelineContext.run().waitUntilDone()
     postProcess(result)
