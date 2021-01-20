@@ -127,7 +127,7 @@ object MonsterBasePlugin extends AutoPlugin {
         ),
         // pinned kind-projector version due to regression in scala 2.12.13
         // https://github.com/typelevel/kind-projector/issues/116
-        addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full)
+        addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.3" cross CrossVersion.full),
         addCompilerPlugin(
           "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion
         ),
