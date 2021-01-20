@@ -66,7 +66,7 @@ object MonsterBasePlugin extends AutoPlugin {
       scalacOptions ++= {
         val snapshot = isSnapshot.value
         val base = Seq(
-          "-deprecation",
+          "-Xlint:deprecation",
           "-encoding",
           "UTF-8",
           "-explaintypes",
@@ -74,11 +74,9 @@ object MonsterBasePlugin extends AutoPlugin {
           "-target:jvm-1.8",
           "-unchecked",
           "-Xfatal-warnings",
-          "-Xfuture",
+          "-Xsource:2.14",
+          "-Xmigration",
           "-Xlint",
-          "-Xmax-classfile-name",
-          "200",
-          "-Yno-adapted-args",
           "-Ypartial-unification",
           "-Ywarn-dead-code",
           "-Ywarn-extra-implicit",
