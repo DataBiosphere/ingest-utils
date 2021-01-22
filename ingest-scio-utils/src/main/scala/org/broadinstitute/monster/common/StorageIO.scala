@@ -40,11 +40,12 @@ object StorageIO {
       .textFile(filePattern)
       .transform(s"Parse '$description' messages")(_.map(JsonParser.parseEncodedJson))
 
-  def writeJsonListsCommon[M](
+  def writeListsCommon[M](
     messages: SCollection[M],
     func: M => String,
     description: String,
     outputPrefix: String,
+    extension: String,
     numShards: Int = 0
   ): ClosedTap[String] =
     messages
@@ -52,7 +53,15 @@ object StorageIO {
         _.map(func)
       )
       .withName(s"Write '$description' messages to '$outputPrefix'")
-      .saveAsTextFile(outputPrefix, suffix = ".json", numShards = numShards)
+      .saveAsTextFile(outputPrefix, suffix = extension, numShards = numShards)
+
+  def writeJsonListsCommon[M](
+    messages: SCollection[M],
+    func: M => String,
+    description: String,
+    outputPrefix: String,
+    numShards: Int = 0
+  ): ClosedTap[String] = writeListsCommon[M](messages, func, description, outputPrefix, ".json", numShards)
 
   /**
     * Write unmodeled messages to storage for use by downstream components.
