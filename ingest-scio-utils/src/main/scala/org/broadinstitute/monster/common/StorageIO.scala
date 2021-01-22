@@ -61,7 +61,8 @@ object StorageIO {
     description: String,
     outputPrefix: String,
     numShards: Int = 0
-  ): ClosedTap[String] = writeListsCommon[M](messages, func, description, outputPrefix, ".json", numShards)
+  ): ClosedTap[String] =
+    writeListsCommon[M](messages, func, description, outputPrefix, ".json", numShards)
 
   /**
     * Write unmodeled messages to storage for use by downstream components.
