@@ -19,7 +19,7 @@ object MonsterDockerPlugin extends AutoPlugin with LinuxKeys with NativePackager
 
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
-      dockerBaseImage := "oracle/graalvm-ce:20.0.0-java8",
+      dockerBaseImage := "ghcr.io/graalvm/graalvm-ce:ol7-java8-20.3.1",
       dockerRepository := Some("us.gcr.io/broad-dsp-gcr-public"),
       dockerLabels := Map("VERSION" -> version.value),
       Docker / defaultLinuxInstallLocation := "/app",
