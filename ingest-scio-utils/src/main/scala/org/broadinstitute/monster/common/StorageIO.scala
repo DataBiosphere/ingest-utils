@@ -94,11 +94,12 @@ object StorageIO {
     messages: SCollection[M],
     description: String,
     outputPrefix: String,
-    numShards: Int = 0
+    numShards: Int = 0,
+    printer: Printer = circePrinter
   ): ClosedTap[String] =
     writeJsonListsCommon(
       messages,
-      (msg: M) => msg.asJson.printWith(circePrinter),
+      (msg: M) => msg.asJson.printWith(printer),
       description,
       outputPrefix,
       numShards = numShards
