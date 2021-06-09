@@ -36,4 +36,6 @@ trait MonsterHelmPluginKeys {
   val reindexHelmRepository: TaskKey[Unit] = taskKey(
     "Update the index.yaml for the project's Helm repository"
   )
+
+  val lintHelmChart: TaskKey[Unit] = taskKey("Lint the project's Helm chart")
 }

@@ -41,7 +41,7 @@ object MonsterHelmPlugin extends AutoPlugin {
     Seq(
       // Test-related settings.
       Test / helmExampleValuesSource := baseDirectory.value / "example-values",
-      Test / test := {
+      Test / lintHelmChart := {
         val log = streams.value.log
         val chart = baseDirectory.value
         val examples = (Test / helmExampleValuesSource).value.glob("*.yaml")
@@ -60,6 +60,7 @@ object MonsterHelmPlugin extends AutoPlugin {
           sys.error(s"Linting failed for example(s): ${failedExamples.mkString(", ")}")
         }
       },
+      test := (Test / lintHelmChart).value,
       // Publish-related settings.
       helmStagingDirectory := target.value / "helm" / "packaged",
       helmChartLocalIndex := target.value / "helm" / "index.yaml",
