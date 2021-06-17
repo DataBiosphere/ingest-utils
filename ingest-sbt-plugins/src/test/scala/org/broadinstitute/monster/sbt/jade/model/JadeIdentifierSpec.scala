@@ -12,21 +12,6 @@ class JadeIdentifierSpec extends AnyFlatSpec with Matchers with EitherValues {
     attempt.left.value should include("not a valid Jade identifier")
   }
 
-  it should "reject capital letters at the beginning of words" in {
-    val attempt = JadeIdentifier.fromString("TableName")
-    attempt.left.value should include("not a valid Jade identifier")
-  }
-
-  it should "reject capital letters in the middle of words" in {
-    val attempt = JadeIdentifier.fromString("columnName")
-    attempt.left.value should include("not a valid Jade identifier")
-  }
-
-  it should "reject capital letters at the end of words" in {
-    val attempt = JadeIdentifier.fromString("columnA")
-    attempt.left.value should include("not a valid Jade identifier")
-  }
-
   it should "reject kebab-case strings" in {
     val attempt = JadeIdentifier.fromString("the-column")
     attempt.left.value should include("not a valid Jade identifier")
