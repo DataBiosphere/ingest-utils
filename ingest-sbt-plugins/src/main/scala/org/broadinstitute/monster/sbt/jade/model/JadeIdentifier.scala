@@ -21,7 +21,7 @@ class JadeIdentifier private[sbt] (private[sbt] val id: String) {
 
 object JadeIdentifier {
   /** Pattern matching valid Jade IDs. */
-  private val idPattern = "^[a-z][a-z0-9_]{0,62}$".r
+  private val idPattern = "^[a-zA-Z][a-zA-Z0-9_]{0,62}$".r
 
   implicit val encoder: Encoder[JadeIdentifier] =
     Encoder[String].contramap(_.id)

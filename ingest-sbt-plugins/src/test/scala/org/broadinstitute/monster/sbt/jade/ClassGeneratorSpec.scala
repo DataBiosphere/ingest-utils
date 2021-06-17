@@ -638,7 +638,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
   )
   it should behave like checkFailedTableGeneration(
     "catch invalid table identifiers",
-    """{ "name": "tableOne", "columns": [] }""",
+    """{ "name": "123tableOne", "columns": [] }""",
     "not a valid Jade identifier"
   )
   it should behave like checkFailedTableGeneration(
@@ -951,7 +951,7 @@ class ClassGeneratorSpec extends AnyFlatSpec with Matchers with EitherValues {
   )
   it should behave like checkFailedStructGeneration(
     "catch invalid struct identifiers",
-    """{ "name": "structOne", "fields": [] }""",
+    """{ "name": "1231structOne", "fields": [] }""",
     "not a valid Jade identifier"
   )
   it should behave like checkFailedStructGeneration(
