@@ -14,7 +14,7 @@ object ClassGenerator {
   private val parser = new JawnParser()
 
   /** Scala keywords which must be escaped if used as a column / table name. */
-  private val keywords = Set("type")
+  private val keywords = Set("type", "trait")
 
   /**
     * Convert the contents of a local (non-Scala) file into Scala source code.
@@ -106,7 +106,7 @@ object ClassGenerator {
   ): Either[Throwable, String] =
     parser.decode[T](tableContent).map { baseTable =>
       // Get the parameters for the class definition
-      val name = snakeToCamel(baseTable.name, titleCase = true)
+      val name = formatField(baseTable.name, titleCase = true)
       val simpleFields = baseTable.columns.map(fieldForColumn)
       val structFields = baseTable.structColumns.map(fieldForStruct(structPackage, _))
       val composedFields = baseTable.tableFragments.map(fieldForComposedTable(fragmentPackage, _))
@@ -182,8 +182,8 @@ object ClassGenerator {
     fragmentPackage: Option[String] = None,
     isStructClass: Boolean = false
   ): String = {
-    val camelCaseName = snakeToCamel(className, titleCase = false)
-    val titleCaseName = snakeToCamel(className, titleCase = true)
+    val camelCaseName = formatField(className, titleCase = false)
+    val titleCaseName = formatField(className, titleCase = true)
     val encoderDeclaration = s"implicit val encoder: _root_.io.circe.Encoder[${titleCaseName}]"
     val encoderMapping = generateEncoderMapping(
       className,
@@ -237,7 +237,7 @@ object ClassGenerator {
     structPackage: String,
     fragmentPackage: Option[String] = None
   ): String = {
-    val camelCaseName = snakeToCamel(className, titleCase = false)
+    val camelCaseName = formatField(className, titleCase = false)
     val columnEncoderMappings = simpleColumns.map { column =>
       val columnType = column.`type`.modify(column.datatype.asScala)
       generateEncoderMappingLine(column.name.id, columnType, camelCaseName, getFieldName(column.name))
@@ -285,7 +285,7 @@ object ClassGenerator {
     structContent: String
   ): Either[Throwable, String] =
     parser.decode[Struct](structContent).map { baseStruct =>
-      val name = snakeToCamel(baseStruct.name, titleCase = true)
+      val name = formatField(baseStruct.name, titleCase = true)
       val fields = baseStruct.fields.map(fieldForColumn)
       val classParams = fields.map(f => s"\n$f").mkString(",")
       val encoder = generateEncoder(
@@ -309,13 +309,13 @@ object ClassGenerator {
 
   /** Get the Scala field name for a Jade column. */
   private def getFieldName(columnName: JadeIdentifier): String = {
-    val rawColumnName = snakeToCamel(columnName, titleCase = false)
+    val rawColumnName = formatField(columnName, titleCase = false)
     if (keywords.contains(rawColumnName)) s"`$rawColumnName`" else rawColumnName
   }
 
   /** Get the data type for a column which references a struct. */
   private def getStructType(structPackage: String, structColumn: StructColumn): String =
-    s"_root_.$structPackage.${snakeToCamel(structColumn.structName, titleCase = true)}"
+    s"_root_.$structPackage.${formatField(structColumn.structName, titleCase = true)}"
 
   /**
     * Set the field name equal to the field's default value.
@@ -352,7 +352,7 @@ object ClassGenerator {
   }
 
   private def composedTableType(tablePackage: String, tableName: JadeIdentifier): String =
-    s"_root_.$tablePackage.${snakeToCamel(tableName, titleCase = true)}"
+    s"_root_.$tablePackage.${formatField(tableName, titleCase = true)}"
 
   /** Get the Scala field declaration for a composed Jade table. */
   private def fieldForComposedTable(tablePackage: String, tableName: JadeIdentifier): String = {
@@ -375,6 +375,10 @@ object ClassGenerator {
     *
     * @param titleCase if true, the first character of the output will be capitalized
     */
+  private def formatField(id: JadeIdentifier, titleCase: Boolean): String = {
+    escapeKeyword(snakeToCamel(id, titleCase))
+  }
+
   private def snakeToCamel(id: JadeIdentifier, titleCase: Boolean): String = {
     val res = id.id.split("_", 0).map(x => x(0).toUpper + x.drop(1)).mkString
     if (titleCase) {
@@ -383,4 +387,9 @@ object ClassGenerator {
       res(0).toLower + res.drop(1)
     }
   }
+
+  private def escapeKeyword(name: String): String = {
+    if (keywords.contains(name)) s"`$name`" else name
+  }
+
 }
