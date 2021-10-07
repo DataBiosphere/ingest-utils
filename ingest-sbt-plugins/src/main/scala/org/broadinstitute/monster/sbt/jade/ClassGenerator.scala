@@ -309,7 +309,7 @@ object ClassGenerator {
 
   /** Get the Scala field name for a Jade column. */
   private def getFieldName(columnName: JadeIdentifier): String = {
-    val rawColumnName = formatField(columnName, titleCase = false)
+    val rawColumnName = snakeToCamel(columnName, titleCase = false)
     if (keywords.contains(rawColumnName)) s"`$rawColumnName`" else rawColumnName
   }
 
