@@ -1,5 +1,3 @@
-resolvers += "confluent" at "https://packages.confluent.io/maven/"
-
 lazy val `ingest-utilities` = project
   .in(file("."))
   .settings(publish / skip := true)
@@ -45,7 +43,7 @@ lazy val `ingest-sbt-plugins` = project
 // build itself, while everything below is going to be injected as app-level libraries.
 // There's no inherent need to keep the two in-sync, and if we ever want to port to
 // Scala 2.13 before sbt catches up it's very likely the two lists will drift.
-val beamVersion = "2.30.0"
+val beamVersion = "2.29.0"
 val betterFilesVersion = "3.8.0"
 val circeVersion = "0.13.0"
 val circeDerivationVersion = "0.13.0-M4"

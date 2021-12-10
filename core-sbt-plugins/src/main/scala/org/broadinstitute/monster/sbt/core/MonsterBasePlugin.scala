@@ -123,7 +123,8 @@ object MonsterBasePlugin extends AutoPlugin {
       Seq(
         resolvers ++= Seq(
           "Broad Artifactory Releases" at "https://broadinstitute.jfrog.io/broadinstitute/libs-release/",
-          "Broad Artifactory Snapshots" at "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
+          "Broad Artifactory Snapshots" at "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/",
+          "confluent" at "https://packages.confluent.io/maven/"
         ),
         addCompilerPlugin(
           "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion
