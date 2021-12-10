@@ -16,6 +16,7 @@ object MonsterScioPipelinePlugin extends AutoPlugin {
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
       // Set best-practice compiler flags for Scio.
+      resolvers += "confluent" at "https://packages.confluent.io/maven/",
       scalacOptions ++= Seq(
         "-Xmacro-settings:show-coder-fallback=true",
         "-language:higherKinds"

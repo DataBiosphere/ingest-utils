@@ -29,6 +29,7 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
 
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
+      resolvers += "confluent" at "https://packages.confluent.io/maven/",
       libraryDependencies ++= Seq(
         "io.circe" %% "circe-core" % CirceVersion,
         "io.circe" %% "circe-derivation" % CirceDerivationVersion

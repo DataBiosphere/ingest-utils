@@ -1,3 +1,5 @@
+resolvers += "confluent" at "https://packages.confluent.io/maven/"
+
 // Spookiness: Use this project as its own plugins.
 // Lifted from here: https://github.com/scalacenter/sbt-release-early/blob/master/project/plugins.sbt
 Compile / unmanagedSourceDirectories +=
