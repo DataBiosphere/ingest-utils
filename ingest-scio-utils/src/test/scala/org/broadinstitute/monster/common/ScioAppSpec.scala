@@ -1,8 +1,8 @@
 package org.broadinstitute.monster.common
 
 import java.time.{LocalDate, LocalTime, OffsetDateTime, ZoneOffset}
-
 import better.files.File
+import org.apache.beam.sdk.options.PipelineOptions
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -15,7 +15,7 @@ class ScioAppSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
 
     override val pipelineBuilder = (ctx, args) => {
       ctx
-        .parallelize(List(args.value))
+        .parallelize(List(args.getValue))
         .map { i =>
           if (i < 0) throw new RuntimeException("AHH!")
           val date = LocalDate.of(2020, i, 1)
@@ -33,22 +33,31 @@ class ScioAppSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach with
   behavior of "ScioApp"
 
   it should "run pipelines to completion" in {
-    app.main(Array("--value", "10"))
+    app.main(Array("--value=10"))
+    val foo = tmpOut.list.toArray
+    println(foo)
     tmpOut.list.toArray.head.contentAsString shouldBe "10\n"
   }
 
   it should "raise an error if pipelines fail" in {
     an[Exception] shouldBe thrownBy {
-      app.main(Array("--value", "-1"))
+      app.main(Array("--value=-1"))
     }
   }
 
   it should "properly parse args as camelCase" in {
-    app.main(Array("--value", "10", "--camelCaseValue", "foo"))
+    app.main(Array("--value=10", "--camelCaseValue=foo"))
     tmpOut.list.toArray.head.contentAsString shouldBe "10\n"
   }
 }
 
 object ScioAppSpec {
-  case class Args(value: Int, camelCaseValue: Option[String])
+
+  trait Args extends PipelineOptions {
+    def getValue: Int
+    def setValue(input: Int): Unit
+
+    def getCamelCaseValue: String
+    def setCamelCaseValue(v: String): Unit
+  }
 }

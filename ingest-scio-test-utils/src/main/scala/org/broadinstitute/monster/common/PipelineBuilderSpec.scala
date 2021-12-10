@@ -2,7 +2,7 @@ package org.broadinstitute.monster.common
 
 import better.files.File
 import com.spotify.scio.testing.PipelineSpec
-import org.apache.beam.sdk.options.PipelineOptionsFactory
+import org.apache.beam.sdk.options.{PipelineOptions, PipelineOptionsFactory}
 import org.broadinstitute.monster.common.msg.JsonParser
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
@@ -12,7 +12,10 @@ import upack.Msg
   * Base class for test suites that assert on the output of
   * a single run of a scio pipeline.
   */
-abstract class PipelineBuilderSpec[Args] extends PipelineSpec with Matchers with BeforeAndAfterAll {
+abstract class PipelineBuilderSpec[Args <: PipelineOptions]
+    extends PipelineSpec
+    with Matchers
+    with BeforeAndAfterAll {
   def testArgs: Args
   def builder: PipelineBuilder[Args]
 
