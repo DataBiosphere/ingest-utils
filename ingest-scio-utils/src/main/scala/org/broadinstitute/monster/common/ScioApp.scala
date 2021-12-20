@@ -4,11 +4,15 @@ import caseapp.core.help.Help
 import caseapp.core.parser.Parser
 import com.spotify.scio.{ContextAndArgs, ScioResult}
 
+import scala.annotation.nowarn
+
 /**
   * @param parser implicit parser doesn't need to be passed, derived from Args type
   * @param help help generated from the Args type
   * @tparam Args an Args case class with input definitions and help messages
   */
+// suppress caseapp deprecation for now
+@nowarn("cat=deprecation")
 abstract class ScioApp[Args](
   implicit parser: Parser[Args],
   help: Help[Args]

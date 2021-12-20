@@ -62,7 +62,7 @@ object MonsterBasePlugin extends AutoPlugin {
   override def buildSettings: Seq[Def.Setting[_]] =
     Seq(
       organization := "org.broadinstitute.monster",
-      scalaVersion := "2.12.11",
+      scalaVersion := "2.12.15",
       scalacOptions ++= {
         val snapshot = isSnapshot.value
         val base = Seq(

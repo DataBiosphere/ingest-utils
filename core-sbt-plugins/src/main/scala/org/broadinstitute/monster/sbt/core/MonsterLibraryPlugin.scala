@@ -59,6 +59,7 @@ object MonsterLibraryPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Def.Setting[_]] =
     Seq(
+      resolvers += "Confluent" at "https://packages.confluent.io/maven/",
       credentials ++= artifactoryCredentials.value.toSeq,
       // Maven-style publishing is unforgivingly broken for sbt plugins, so we
       // publish ivy-style when the plugin setting is true.
