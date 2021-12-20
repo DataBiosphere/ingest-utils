@@ -7,12 +7,10 @@ import org.broadinstitute.monster.sbt.jade.model.{MonsterTable, MonsterTableFrag
 import sbt._
 import sbt.Keys._
 import sbt.nio.Keys._
-import scoverage.ScoverageSbtPlugin
 
 /** Plugin for projects which ETL data into a Jade dataset. */
 object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
 
-  import ScoverageSbtPlugin.autoImport._
   import com.typesafe.sbt.packager.docker.DockerPlugin.autoImport._
   import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport._
 
@@ -114,15 +112,6 @@ object MonsterJadeDatasetPlugin extends AutoPlugin with LinuxKeys {
         fileView = fileTreeView.value,
         logger = streams.value.log
       ),
-      // Coverage of generated sources can break codedov.io, since it can't match the data to a source file.
-      // NOTE: The types here leave a bit to be desired. This setting maps to this arg in the scoverage compiler
-      // plugin, so we have to match its interface:
-      // https://github.com/scoverage/scalac-scoverage-plugin#excluding-code-from-coverage-stats
-      coverageExcludedPackages := List(
-        coverageExcludedPackages.value,
-        jadeTablePackage.value.replaceAllLiterally(".", "\\.") + ".*",
-        jadeStructPackage.value.replaceAllLiterally(".", "\\.") + ".*"
-      ).mkString(";"),
       // Override the Docker image to use gcloud, so we get access to 'bq'.
       dockerBaseImage := "google/cloud-sdk:283.0.0-slim",
       dockerEntrypoint := Seq("bq"),

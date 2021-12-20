@@ -2,11 +2,10 @@ package org.broadinstitute.monster.sbt.core
 
 import org.scalafmt.sbt.ScalafmtPlugin
 import sbt.Keys._
-import sbt.plugins.JvmPlugin
 import sbt._
+import sbt.plugins.JvmPlugin
 import sbtbuildinfo.BuildInfoPlugin
 import sbtdynver.DynVerPlugin
-import scoverage.ScoverageSbtPlugin
 
 /**
   * Plugin containing settings which should be applied to _every_ sbt project
@@ -22,11 +21,10 @@ object MonsterBasePlugin extends AutoPlugin {
   import BuildInfoPlugin.autoImport._
   import DynVerPlugin.autoImport._
   import ScalafmtPlugin.autoImport._
-  import ScoverageSbtPlugin.autoImport._
 
   // Automatically apply our base settings to every project.
   override def requires: Plugins =
-    JvmPlugin && DynVerPlugin && ScalafmtPlugin && ScoverageSbtPlugin && BuildInfoPlugin
+    JvmPlugin && DynVerPlugin && ScalafmtPlugin && BuildInfoPlugin
 
   val ScalafmtVersion = "2.6.1"
 
@@ -148,11 +146,7 @@ object MonsterBasePlugin extends AutoPlugin {
         buildInfoObject := name.value
           .split('-')
           .map(_.capitalize)
-          .mkString + "BuildInfo",
-        // Exclude build-info objects from test coverage.
-        // NOTE: This is a regex, so we have to escape all the dots.
-        coverageExcludedPackages := buildInfoPackage.value
-          .replaceAllLiterally(".", "\\.") + ".*"
+          .mkString + "BuildInfo"
       )
     )
 }
