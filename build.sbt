@@ -43,12 +43,13 @@ lazy val `ingest-sbt-plugins` = project
 // build itself, while everything below is going to be injected as app-level libraries.
 // There's no inherent need to keep the two in-sync, and if we ever want to port to
 // Scala 2.13 before sbt catches up it's very likely the two lists will drift.
-val beamVersion = "2.29.0"
+val beamVersion = "2.38.0"
+val snappyVersion = "1.1.8.2"
 val betterFilesVersion = "3.8.0"
 val circeVersion = "0.13.0"
 val circeDerivationVersion = "0.13.0-M4"
 val logbackVersion = "1.2.3"
-val scioVersion = "0.10.3"
+val scioVersion = "0.11.6"
 val uPickleVersion = "1.0.0"
 
 val scalatestVersion = "3.1.1"
@@ -66,7 +67,8 @@ lazy val `ingest-scio-utils` = project
     ),
     libraryDependencies ++= Seq(
       "org.apache.beam" % "beam-runners-direct-java" % beamVersion,
-      "org.apache.beam" % "beam-runners-google-cloud-dataflow-java" % beamVersion
+      "org.apache.beam" % "beam-runners-google-cloud-dataflow-java" % beamVersion,
+      "org.xerial.snappy" % "snappy-java" % snappyVersion
     ).map(_ % Runtime),
     libraryDependencies ++= Seq(
       "com.github.pathikrit" %% "better-files" % betterFilesVersion,
