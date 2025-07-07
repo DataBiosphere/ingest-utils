@@ -122,8 +122,8 @@ object MonsterBasePlugin extends AutoPlugin {
       inConfig(IntegrationTest)(ScalafmtPlugin.scalafmtConfigSettings),
       Seq(
         resolvers ++= Seq(
-          "Broad Artifactory Releases" at "https://broadinstitute.jfrog.io/broadinstitute/libs-release/",
-          "Broad Artifactory Snapshots" at "https://broadinstitute.jfrog.io/broadinstitute/libs-snapshot/"
+          "Google Artifact Repository Releases" at "https://us-central1-maven.pkg.dev/dsp-artifact-registry/libs-release/",
+          "Google Artifact Repository Snapshots" at "https://us-central1-maven.pkg.dev/dsp-artifact-registry/libs-snapshot/"
         ),
         addCompilerPlugin(
           "com.olegpy" %% "better-monadic-for" % BetterMonadicForVersion

@@ -6,6 +6,8 @@ on:
 jobs:
   master-ci:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
       - uses: actions/checkout@v2
       - name: Fetch tag history
@@ -21,8 +23,12 @@ jobs:
         run: sbt "set ThisBuild/coverageEnabled := true" test coverageAggregate
       - name: Publish coverage
         uses: codecov/codecov-action@v1
+      - name: Auth to GCP
+        id: 'auth'
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1038484894585/locations/global/workloadIdentityPools/github-wi-pool/providers/github-wi-provider'
+          service_account: 'dsp-artifact-registry-push@dsp-artifact-registry.iam.gserviceaccount.com'
       - name: Publish
-        env:
-          ARTIFACTORY_USERNAME: ${{ secrets.ArtifactoryUsername }}
-          ARTIFACTORY_PASSWORD: ${{ secrets.ArtifactoryPassword }}
         run: sbt publish
